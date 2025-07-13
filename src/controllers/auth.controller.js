@@ -2,24 +2,16 @@ const response = require("@/utils/response");
 const authService = require("@/service/auth.service");
 const { Queue } = require("@/db/models");
 const register = async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
-
   try {
-    const { tokenData } = await authService.register({
-      email,
-      password,
-      firstName,
-      lastName,
-    });
-    console.log(tokenData);
+    const { userId, token } = await authService.register(req.body);
 
     await Queue.create({
       type: "sendVerifyEmailJob",
-      payload: { email },
+      payload: { userId },
     });
-    console.log(email);
 
-    response.succsess(res, 200, tokenData);
+    response.succsess(res, 200, token);
+    console.log(token);
   } catch (error) {
     response.error(res, 400, error.message);
   }
@@ -30,32 +22,19 @@ const login = async (req, res) => {
 
   try {
     const userData = await authService.login({ email, password });
+    console.log(userData);
+
     return response.succsess(res, 200, userData);
   } catch (error) {
     response.error(res, 401, error.message);
   }
 };
 
-const forGotPassWord = async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    const userData = await authService.forGotPassWord({ email });
-    await Queue.create({
-      type: "sendVerifyEmailJob",
-      payload: { email },
-    });
-    return response.succsess(res, 200, userData);
-  } catch (error) {
-    response.error(res, 401, error.message);
-  }
+const me = async (req, res) => {
+  response.success(res, 200, req.user);
 };
 
 const refreshToken = async (req, res) => {
-  const { refresh_token } = req.body;
-  if (!refresh_token) {
-    return response(res, 400, "Refresh token là bắt buộc");
-  }
   try {
     const tokenData = await authService.refreshAccessToken(
       req.body.refresh_token
@@ -66,9 +45,55 @@ const refreshToken = async (req, res) => {
   }
 };
 
+const verifyEmail = async (req, res) => {
+  try {
+    const check = await authService.verifyEmail(req.body.email);
+    if (check === "verified") {
+      return res.json({
+        status: true,
+      });
+    }
+    res.status(201).send("");
+  } catch (error) {
+    throw new Error("Token không tồn tại");
+  }
+};
+
+const verifyToken = async (req, res) => {
+  try {
+    const verify = await authService.verifyToken(req.body.token);
+    res.status(201).json({
+      data: verify,
+    });
+  } catch (error) {
+    throw new Error("Token không tồn tại");
+  }
+};
+const forGotPassWord = async (req, res) => {
+  try {
+    await authService.forGotPassWord(req.body.email);
+    res.status(201).send("");
+  } catch (error) {
+    throw new Error("Email không tồn tại");
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    await authService.resetPassword(req.body);
+    res.status(201).send("");
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 module.exports = {
   register,
   login,
+  me,
+  verifyEmail,
+  verifyToken,
   forGotPassWord,
+  resetPassword,
   refreshToken,
 };

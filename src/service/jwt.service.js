@@ -1,14 +1,14 @@
 const jwt = require("jsonwebtoken");
-const { JWT_SECRECT, JWT_EXPIRES_IN, TOKEN_TYPE } = require("@/config/auth");
+const { JWT_SECRET, JWT_EXPIRES_IN, TOKEN_TYPE } = require("@/config/auth");
 
-const generateAccessToken = (userId) => {
-  const token = jwt.sign(
-    { userId },
-    "ff966606fd4ab5e174e24b72336a92c09e66d1ace44d0b48867a71e2cbad3660",
-    {
-      expiresIn: 30 * 24 * 60 * 60,
-    }
-  );
+const generateAccessToken = (
+  userId,
+  secret = JWT_SECRET,
+  expires = JWT_EXPIRES_IN
+) => {
+  const token = jwt.sign({ userId }, secret, {
+    expiresIn: expires,
+  });
 
   return {
     access_token: token,
@@ -17,6 +17,11 @@ const generateAccessToken = (userId) => {
   };
 };
 
+const verifyAccessToken = (token, secret = JWT_SECRET) => {
+  return jwt.verify(token, secret);
+};
+
 module.exports = {
   generateAccessToken,
+  verifyAccessToken,
 };

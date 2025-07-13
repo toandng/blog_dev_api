@@ -6,8 +6,8 @@ const cors = require("cors");
 const router = require("@/routes/api");
 const app = express();
 
-const errorHandler = require("@/middlewares/errorHandler");
-const notFoudHandler = require("@/middlewares/notFoundHandler");
+const errorHandler = require("@/middlewares/errors/errorHandler");
+const notFoudHandler = require("@/middlewares/errors/notFoundHandler");
 // cors
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 

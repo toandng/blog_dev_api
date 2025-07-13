@@ -1,42 +1,60 @@
 require("module-alias/register");
 require("dotenv").config();
-const { createToken } = require("@/utils/jwt");
 const transporter = require("@/config/mailer");
 const loadEmail = require("@/utils/loadEmail");
 const { User } = require("@/db/models");
+const jwtService = require("@/service/jwt.service");
 
 async function sendVerifyEmailJob(job) {
-  const { dataValues: payload } = job;
-
-  const { email } = JSON.parse(payload.payload);
-  console.log(email);
-
   try {
-    const user = await User.findOne({ where: { email } });
-    ``;
-    const token = createToken(
-      { userId: user.id },
-      {
-        expiresIn: 60 * 60 * 12,
-      }
+    const { userId } = JSON.parse(job.payload);
+    console.log(`Processing email job for user: ${userId}`);
+
+    const user = await User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new Error(`User not found with ID: ${userId}`);
+    }
+
+    console.log(`Sending verification email to: ${user.email}`);
+
+    const { access_token } = jwtService.generateAccessToken(
+      userId,
+      process.env.MAIL_JWT_SECRET
     );
+
     // Tạo link xác minh email
+    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${access_token}`;
+    console.log(`Verify URL: ${verifyUrl}`);
 
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
-    console.log(verifyUrl, "hello");
-
-    const data = { token, email, verifyUrl };
+    const data = { access_token, userId, verifyUrl };
     const template = await loadEmail("verify-email", data);
-    console.log(template);
 
-    await transporter.sendMail({
-      from: "meocute0508@gmail.com",
+    if (!template) {
+      throw new Error("Failed to load email template");
+    }
+
+    console.log("Email template loaded successfully");
+
+    // Gửi email
+    const result = await transporter.sendMail({
+      from: process.env.MAIL_FROM || "meocute0508@gmail.com",
+      subject: "Verification email",
       to: user.email,
       html: template,
     });
+
+    console.log(`Email sent successfully to ${user.email}:`, result.messageId);
+    return result;
   } catch (error) {
-    console.log(error);
-    throw new Error(error);
+    console.error("Error in sendVerifyEmailJob:", error.message);
+    console.error(error.stack);
+    throw error; // Re-throw để queue worker có thể handle
   }
 }
+
 module.exports = sendVerifyEmailJob;

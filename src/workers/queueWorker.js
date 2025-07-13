@@ -1,33 +1,33 @@
-require("module-alias/register");
-
-const { Queue } = require("@/db/models");
-const sendVerifyEmailJob = require("@/job/sendVerifyEmailJob");
-const queueService = require("@/service/queue.service");
+const sendVerifyEmailJob = require("../job/sendVerifyEmailJob");
+const QueueService = require("../service/queue.service");
 
 const handlers = {
   sendVerifyEmailJob,
 };
+
 async function jobProcess(job) {
   const handler = handlers[job.type];
-
-  console.log(job.type);
-
   if (handler) {
     try {
-      await Queue.update({ status: "processing" }, { where: { id: job.id } });
-
+      await QueueService.update(job.id, { status: "processing" });
       await handler(job);
-
-      await Queue.update({ status: "completed" }, { where: { id: job.id } });
+      await QueueService.update(job.id, { status: "completed" });
     } catch (error) {
-      await Queue.update({ status: "reject" }, { where: { id: job.id } });
+      await QueueService.update(job.id, { status: "reject" });
+
+      if (job.max_retries < job.retries_count) {
+        await QueueService.update(job.id, {
+          status: "failed",
+        });
+      }
     }
   }
 }
 
 async function queueWorker() {
   while (true) {
-    const jobs = await queueService.findPendingJob();
+    const jobs = await QueueService.findPendingJobs();
+    // [job.type]
 
     for (let job of jobs) {
       await jobProcess(job);
@@ -35,4 +35,5 @@ async function queueWorker() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
+
 queueWorker();

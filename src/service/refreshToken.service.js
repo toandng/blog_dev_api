@@ -1,5 +1,5 @@
+const { RefreshToken } = require("@/db/models");
 const { REFRESH_TOKEN_EXPIRES_IN } = require("@/config/auth");
-const { RefreshToken } = require("@/db/models"); // Import từ models/index.js
 const generateToken = require("@/utils/generateToken");
 const { Op } = require("sequelize");
 
