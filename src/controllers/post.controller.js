@@ -1,17 +1,50 @@
 const response = require("@/utils/response");
 const postService = require("@/service/post.service");
 
-const getList = async (req, res) => {
+const index = async (req, res) => {
+  const { posts } = await postService.getAll();
+
+  res.json({ data: posts });
+};
+const getBySlug = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const { items, total } = await postService.getAllPost(page, limit);
-    response.succsess(res, 200, { items, total });
+    const post = await postService.getBySlug(req.params.slug);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+    res.json({
+      success: true,
+      data: post,
+    });
   } catch (error) {
-    response.error(res, 400, error.message);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
+const update = async (req, res) => {
+  const post = await postService.update(req.params.id, req.body);
+  res.json(post);
+};
+const create = async (req, res) => {
+  const post = await postService.create(req.body);
+  res.json(post);
+};
+const remove = async (req, res) => {
+  await postService.remove(req.params.id);
+  res.status(204).send();
+};
+
 module.exports = {
-  getList,
+  index,
+  update,
+  create,
+  remove,
+  getBySlug,
 };

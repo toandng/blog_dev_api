@@ -9,24 +9,12 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
-      title: {
-        type: DataTypes.STRING(255),
-      },
-      description: {
-        type: DataTypes.TEXT,
-      },
-      meta_title: {
-        type: DataTypes.STRING(255),
-      },
-      meta_description: {
-        type: DataTypes.TEXT,
-      },
-      thumbnail: {
-        type: DataTypes.STRING(255),
-      },
-      cover: {
-        type: DataTypes.STRING(255),
-      },
+      title: DataTypes.STRING(255),
+      description: DataTypes.TEXT,
+      meta_title: DataTypes.STRING(255),
+      meta_description: DataTypes.TEXT,
+      thumbnail: DataTypes.STRING(255),
+      cover: DataTypes.STRING(255),
       status: {
         type: DataTypes.STRING(50),
         defaultValue: "draft",
@@ -35,9 +23,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(50),
         defaultValue: "public",
       },
-      content: {
-        type: DataTypes.TEXT,
-      },
+      content: DataTypes.TEXT,
       slug: {
         type: DataTypes.STRING(255),
         unique: true,
@@ -50,9 +36,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
-      public_at: {
-        type: DataTypes.DATE,
-      },
+      public_at: DataTypes.DATE,
     },
     {
       tableName: "posts",
@@ -62,31 +46,29 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   Post.associate = (db) => {
-    // Post belongs to user
-    Post.belongsTo(db.User, {
-      foreignKey: "user_id",
-      as: "author",
+    // ✅ Many-to-many with Topic (using alias: topics)
+    Post.belongsToMany(db.Topic, {
+      through: "post_topic",
+      foreignKey: "post_id",
+      otherKey: "topic_id",
+      as: "topics",
     });
 
-    // Post has many comments
+    Post.belongsTo(db.User, {
+      foreignKey: "user_id",
+      as: "user",
+    });
+
     Post.hasMany(db.Comment, {
       foreignKey: "post_id",
       as: "comments",
     });
 
-    // Post has many bookmarks
     Post.hasMany(db.Bookmark, {
       foreignKey: "post_id",
       as: "bookmarks",
     });
 
-    // Post has one topic reference
-    Post.hasOne(db.Topic, {
-      foreignKey: "post_id",
-      as: "topic",
-    });
-
-    // Post many-to-many with tags through tag_post
     Post.belongsToMany(db.Tag, {
       through: "TagPost",
       foreignKey: "post_id",
@@ -94,7 +76,6 @@ module.exports = (sequelize, DataTypes) => {
       as: "tags",
     });
 
-    // Polymorphic relationship with likes
     Post.hasMany(db.Like, {
       foreignKey: "likeable_id",
       constraints: false,
