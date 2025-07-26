@@ -11,26 +11,27 @@ module.exports = {
       },
       type: {
         type: Sequelize.STRING(50),
-        defaultValue: null,
+        allowNull: false,
       },
       title: {
         type: Sequelize.STRING(255),
+        allowNull: false,
       },
       notifiable_type: {
         type: Sequelize.STRING(100),
+        allowNull: false,
       },
       notifiable_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },

@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     "RefreshToken",
     {
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.BIGINT,
         allowNull: false,
         references: {
           model: "users",
@@ -30,8 +30,8 @@ module.exports = (sequelize, DataTypes) => {
       updatedAt: "updated_at",
     }
   );
-  RefreshToken.associate = (db) => {
-    RefreshToken.belongsTo(db.User);
-  };
+  // RefreshToken.associate = (db) => {
+  //     RefreshToken.belongsTo(db.User);
+  // };
   return RefreshToken;
 };

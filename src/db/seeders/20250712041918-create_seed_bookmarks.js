@@ -1,49 +1,31 @@
 "use strict";
 
-const { faker } = require("@faker-js/faker");
-
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Get existing user and post IDs
-    const users = await queryInterface.sequelize.query(
-      "SELECT id FROM users ORDER BY id ASC",
-      { type: Sequelize.QueryTypes.SELECT }
-    );
+    const users = await queryInterface.sequelize.query(`SELECT id FROM users`, {
+      type: queryInterface.sequelize.QueryTypes.SELECT,
+    });
 
-    const posts = await queryInterface.sequelize.query(
-      "SELECT id FROM posts ORDER BY id ASC",
-      { type: Sequelize.QueryTypes.SELECT }
-    );
-
-    if (users.length === 0 || posts.length === 0) {
-      throw new Error("Users and posts must exist before creating bookmarks.");
-    }
+    const posts = await queryInterface.sequelize.query(`SELECT id FROM posts`, {
+      type: queryInterface.sequelize.QueryTypes.SELECT,
+    });
 
     const bookmarks = [];
-    const bookmarkSet = new Set();
+    const uniqueSet = new Set();
 
-    // Create bookmarks - each user bookmarks 3-10 posts
-    for (const user of users) {
-      const numberOfBookmarks = faker.number.int({ min: 3, max: 10 });
-      const selectedPosts = faker.helpers.arrayElements(
-        posts,
-        numberOfBookmarks
-      );
+    while (bookmarks.length < 10 && users.length > 0 && posts.length > 0) {
+      const user = users[Math.floor(Math.random() * users.length)];
+      const post = posts[Math.floor(Math.random() * posts.length)];
 
-      for (const post of selectedPosts) {
-        const bookmarkKey = `${user.id}-${post.id}`;
-
-        if (!bookmarkSet.has(bookmarkKey)) {
-          bookmarkSet.add(bookmarkKey);
-
-          bookmarks.push({
-            user_id: user.id,
-            post_id: post.id,
-            created_at: faker.date.past({ years: 1 }),
-            updated_at: new Date(),
-          });
-        }
+      const key = `${user.id}-${post.id}`;
+      if (!uniqueSet.has(key)) {
+        uniqueSet.add(key);
+        bookmarks.push({
+          user_id: user.id,
+          post_id: post.id,
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
       }
     }
 

@@ -11,6 +11,7 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
@@ -20,6 +21,7 @@ module.exports = {
       },
       post_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "posts",
           key: "id",
@@ -29,14 +31,18 @@ module.exports = {
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
+    });
+
+    // Add composite unique constraint
+    await queryInterface.addIndex("bookmarks", ["user_id", "post_id"], {
+      unique: true,
+      name: "bookmarks_user_id_post_id_unique",
     });
   },
 

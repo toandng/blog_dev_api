@@ -1,20 +1,26 @@
 module.exports = (sequelize, DataTypes) => {
-  const Message = sequelize.define(
+  const messages = sequelize.define(
     "Message",
     {
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       conversation_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "conversations",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       type: {
         type: DataTypes.STRING(50),
@@ -22,9 +28,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       content: {
         type: DataTypes.TEXT,
+        defaultValue: null,
       },
-      delete_at: {
+      deleted_at: {
         type: DataTypes.DATE,
+        defaultValue: null,
       },
     },
     {
@@ -34,19 +42,17 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Message.associate = (db) => {
-    // Message belongs to user
-    Message.belongsTo(db.User, {
-      foreignKey: "user_id",
+  messages.associate = (db) => {
+    messages.belongsTo(db.User, {
+      foreignKey: "sender_id",
       as: "user",
     });
 
-    // Message belongs to conversation
-    Message.belongsTo(db.Conversation, {
+    messages.belongsTo(db.Conversation, {
       foreignKey: "conversation_id",
       as: "conversation",
     });
   };
 
-  return Message;
+  return messages;
 };

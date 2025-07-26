@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Queue = sequelize.define(
+  const queue = sequelize.define(
     "Queue",
     {
       type: {
@@ -34,5 +34,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return Queue;
+  return queue;
 };

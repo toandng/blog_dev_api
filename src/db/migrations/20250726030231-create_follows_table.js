@@ -3,14 +3,15 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("user_conversation", {
+    await queryInterface.createTable("follows", {
       id: {
         type: Sequelize.INTEGER({ unsigned: true }),
         autoIncrement: true,
         primaryKey: true,
       },
-      user_id: {
+      following_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
@@ -18,10 +19,11 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      conversation_id: {
+      followed_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
-          model: "conversations",
+          model: "users",
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -29,18 +31,22 @@ module.exports = {
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
+    });
+
+    // Add composite unique constraint to prevent duplicate follows
+    await queryInterface.addIndex("follows", ["following_id", "followed_id"], {
+      unique: true,
+      name: "follows_following_id_followed_id_unique",
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("user_conversation");
+    await queryInterface.dropTable("follows");
   },
 };

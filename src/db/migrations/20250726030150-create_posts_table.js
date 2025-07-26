@@ -11,6 +11,7 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
@@ -19,6 +20,15 @@ module.exports = {
         onDelete: "CASCADE",
       },
       title: {
+        type: Sequelize.STRING(255),
+        allowNull: false,
+      },
+      slug: {
+        type: Sequelize.STRING(255),
+        unique: true,
+        allowNull: false,
+      },
+      thumbnail: {
         type: Sequelize.STRING(255),
         defaultValue: null,
       },
@@ -34,12 +44,8 @@ module.exports = {
         type: Sequelize.TEXT,
         defaultValue: null,
       },
-      thumbnail: {
-        type: Sequelize.STRING(255),
-        defaultValue: null,
-      },
-      cover: {
-        type: Sequelize.STRING(255),
+      content: {
+        type: Sequelize.TEXT,
         defaultValue: null,
       },
       status: {
@@ -50,34 +56,25 @@ module.exports = {
         type: Sequelize.STRING(50),
         defaultValue: "public",
       },
-      content: {
-        type: Sequelize.TEXT,
-        defaultValue: null,
-      },
-      slug: {
-        type: Sequelize.STRING(255),
-        unique: true,
-      },
-      view_count: {
+      views_count: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      like_count: {
+      likes_count: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      public_at: {
+      published_at: {
         type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },

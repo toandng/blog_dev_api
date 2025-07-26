@@ -1,20 +1,26 @@
 module.exports = (sequelize, DataTypes) => {
-  const Bookmark = sequelize.define(
+  const bookmark = sequelize.define(
     "Bookmark",
     {
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       post_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "posts",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
     },
     {
@@ -24,19 +30,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Bookmark.associate = (db) => {
-    // Bookmark belongs to user
-    Bookmark.belongsTo(db.User, {
-      foreignKey: "user_id",
-      as: "user",
-    });
-
-    // Bookmark belongs to post
-    Bookmark.belongsTo(db.Post, {
-      foreignKey: "post_id",
-      as: "post",
-    });
-  };
-
-  return Bookmark;
+  return bookmark;
 };

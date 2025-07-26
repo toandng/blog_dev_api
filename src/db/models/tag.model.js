@@ -1,10 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
-  const Tag = sequelize.define(
+  const tag = sequelize.define(
     "Tag",
     {
       name: {
         type: DataTypes.STRING(50),
         unique: true,
+        allowNull: false,
       },
     },
     {
@@ -14,15 +15,14 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Tag.associate = (db) => {
-    // Tag many-to-many with posts through tag_post
-    Tag.belongsToMany(db.Post, {
-      through: "TagPost",
+  tag.associate = (db) => {
+    tag.belongsToMany(db.Post, {
+      through: "post_tag",
       foreignKey: "tag_id",
       otherKey: "post_id",
       as: "posts",
     });
   };
 
-  return Tag;
+  return tag;
 };

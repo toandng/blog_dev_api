@@ -3,23 +3,15 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("comments", {
+    await queryInterface.createTable("post_tag", {
       id: {
         type: Sequelize.INTEGER({ unsigned: true }),
         autoIncrement: true,
         primaryKey: true,
       },
-      user_id: {
-        type: Sequelize.INTEGER({ unsigned: true }),
-        references: {
-          model: "users",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
-      },
       post_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "posts",
           key: "id",
@@ -27,40 +19,34 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      parent_id: {
+      tag_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
-          model: "comments",
+          model: "tags",
           key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
-        defaultValue: null,
-      },
-      content: {
-        type: Sequelize.TEXT,
-      },
-      like_count: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-      },
-      delete_at: {
-        type: Sequelize.DATE,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
+    });
+
+    // Add composite unique constraint
+    await queryInterface.addIndex("post_tag", ["post_id", "tag_id"], {
+      unique: true,
+      name: "post_tag_post_id_tag_id_unique",
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("comments");
+    await queryInterface.dropTable("post_tag");
   },
 };

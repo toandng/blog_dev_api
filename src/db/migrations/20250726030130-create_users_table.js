@@ -16,26 +16,25 @@ module.exports = {
         type: Sequelize.STRING(50),
       },
       email: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(50),
         unique: true,
         defaultValue: null,
       },
       password: {
-        type: Sequelize.STRING(100),
+        type: Sequelize.STRING(255),
         defaultValue: null,
       },
-      two_factor_enable: {
-        type: Sequelize.TINYINT(1),
-        defaultValue: 0,
+      two_factor_enabled: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       two_factor_secret: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING,
         defaultValue: null,
       },
-      user_name: {
+      username: {
         type: Sequelize.STRING(50),
         unique: true,
-        defaultValue: null,
       },
       avatar: {
         type: Sequelize.STRING(255),
@@ -47,7 +46,11 @@ module.exports = {
       about: {
         type: Sequelize.TEXT,
       },
-      followers_count: {
+      posts_count: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+      },
+      follower_count: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
@@ -55,39 +58,36 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      like_count: {
+      likes_count: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
       address: {
         type: Sequelize.TEXT,
-        defaultValue: null,
       },
       website_url: {
         type: Sequelize.STRING(255),
-        defaultValue: null,
       },
       twitter_url: {
         type: Sequelize.STRING(255),
-        defaultValue: null,
       },
       github_url: {
         type: Sequelize.STRING(255),
-        defaultValue: null,
       },
       linkedin_url: {
         type: Sequelize.STRING(255),
+      },
+      verified_at: {
+        type: Sequelize.DATE,
         defaultValue: null,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },

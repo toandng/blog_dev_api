@@ -3,14 +3,15 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("follows", {
+    await queryInterface.createTable("comments", {
       id: {
         type: Sequelize.INTEGER({ unsigned: true }),
         autoIncrement: true,
         primaryKey: true,
       },
-      following_id: {
+      user_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
@@ -18,29 +19,46 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      followed_id: {
+      post_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
-          model: "users",
+          model: "posts",
           key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
+      },
+      parent_id: {
+        type: Sequelize.INTEGER({ unsigned: true }),
+        defaultValue: null,
+        references: {
+          model: "comments",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      content: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      deleted_at: {
+        type: Sequelize.DATE,
+        defaultValue: null,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("follows");
+    await queryInterface.dropTable("comments");
   },
 };

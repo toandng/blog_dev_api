@@ -31,9 +31,16 @@ const login = async (req, res) => {
 };
 
 const me = async (req, res) => {
-  response.success(res, 200, req.user);
-};
+  try {
+    if (!req.user) {
+      return response.error(res, 401, "Token invalid");
+    }
 
+    return response.succsess(res, 200, req.user);
+  } catch (error) {
+    return response.error(res, 500, "Internal server error");
+  }
+};
 const refreshToken = async (req, res) => {
   try {
     const tokenData = await authService.refreshAccessToken(

@@ -1,5 +1,7 @@
 const { where } = require("sequelize");
+
 const { User, Queue } = require("@/db/models");
+const { Op } = require("sequelize");
 const { hash, compare } = require("@/utils/bcrypt");
 const jwtService = require("@/service/jwt.service");
 const refreshTokenService = require("@/service/refreshToken.service");
@@ -11,7 +13,6 @@ const register = async (data) => {
     first_name: data.first_name,
     last_name: data.last_name,
   });
-  console.log(user);
 
   const userId = user.id;
   const token = jwtService.generateAccessToken(userId);
@@ -23,6 +24,8 @@ const register = async (data) => {
 
 const login = async ({ email, password }) => {
   const user = await User.findOne({ where: { email }, raw: true });
+  console.log(user);
+
   if (!user) {
     throw new Error("Thông tin đăng nhập không hợp lệ");
   }
@@ -40,6 +43,31 @@ const login = async ({ email, password }) => {
   };
 };
 
+const getProfile = async (fullname) => {
+  const [firstName, ...rest] = fullname.split(" ");
+  const lastName = rest.join(" ");
+
+  const user = await User.findOne({
+    where: {
+      [Op.and]: [
+        { first_name: { [Op.iLike]: `%${firstName}%` } },
+        { last_name: { [Op.iLike]: `%${lastName}%` } },
+      ],
+    },
+    attributes: {
+      exclude: ["password", "refresh_token"],
+    },
+    raw: true,
+  });
+
+  if (!user) {
+    const error = new Error("Không tìm thấy người dùng");
+    error.status = 404;
+    throw error;
+  }
+
+  return user;
+};
 const forGotPassWord = async (email) => {
   const user = await User.findOne({ where: { email } });
 
@@ -172,6 +200,7 @@ const refreshAccessToken = async (refreshTokenString) => {
 module.exports = {
   register,
   login,
+  getProfile,
   forGotPassWord,
   resetPassword,
   verifyEmail,

@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Conversation = sequelize.define(
+  const conversation = sequelize.define(
     "Conversation",
     {
       name: {
@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       avatar: {
         type: DataTypes.STRING(255),
+        defaultValue: null,
       },
       last_message_at: {
         type: DataTypes.DATE,
@@ -19,21 +20,17 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Conversation.associate = (db) => {
-    // Conversation has many messages
-    Conversation.hasMany(db.Message, {
+  conversation.associate = (db) => {
+    conversation.belongsTo(db.User, {
+      foreignKey: "created_by",
+      as: "creator",
+    });
+
+    conversation.hasMany(db.Message, {
       foreignKey: "conversation_id",
       as: "messages",
     });
-
-    // Conversation many-to-many with users through user_conversation
-    Conversation.belongsToMany(db.User, {
-      through: "UserConversation",
-      foreignKey: "conversation_id",
-      otherKey: "user_id",
-      as: "users",
-    });
   };
 
-  return Conversation;
+  return conversation;
 };

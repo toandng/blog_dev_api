@@ -8,7 +8,6 @@ const jwtService = require("@/service/jwt.service");
 async function sendVerifyEmailJob(job) {
   try {
     const { userId } = JSON.parse(job.payload);
-    console.log(`Processing email job for user: ${userId}`);
 
     const user = await User.findOne({
       where: {
@@ -20,8 +19,6 @@ async function sendVerifyEmailJob(job) {
       throw new Error(`User not found with ID: ${userId}`);
     }
 
-    console.log(`Sending verification email to: ${user.email}`);
-
     const { access_token } = jwtService.generateAccessToken(
       userId,
       process.env.MAIL_JWT_SECRET
@@ -29,7 +26,6 @@ async function sendVerifyEmailJob(job) {
 
     // Tạo link xác minh email
     const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${access_token}`;
-    console.log(`Verify URL: ${verifyUrl}`);
 
     const data = { access_token, userId, verifyUrl };
     const template = await loadEmail("verify-email", data);

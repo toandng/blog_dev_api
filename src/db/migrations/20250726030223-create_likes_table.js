@@ -3,12 +3,11 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("refresh_tokens", {
+    await queryInterface.createTable("likes", {
       id: {
         type: Sequelize.INTEGER({ unsigned: true }),
         autoIncrement: true,
         primaryKey: true,
-        allowNull: false,
       },
       user_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
@@ -17,29 +16,39 @@ module.exports = {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
-      token: {
-        type: Sequelize.STRING,
+      likeable_type: {
+        type: Sequelize.STRING(50),
         allowNull: false,
-        unique: true,
       },
-      expired_at: {
-        type: Sequelize.DATE,
+      likeable_id: {
+        type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
+
+    // Add composite unique constraint to prevent duplicate likes
+    await queryInterface.addIndex(
+      "likes",
+      ["user_id", "likeable_type", "likeable_id"],
+      {
+        unique: true,
+        name: "likes_user_id_likeable_type_likeable_id_unique",
+      }
+    );
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("refresh_tokens");
+    await queryInterface.dropTable("likes");
   },
 };

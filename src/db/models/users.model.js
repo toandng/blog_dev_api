@@ -1,41 +1,50 @@
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define(
+  const user = sequelize.define(
     "User",
     {
       first_name: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
       },
       last_name: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
       },
       email: {
         type: DataTypes.STRING,
         unique: true,
+        defaultValue: null,
       },
       password: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
-      two_factor_enable: {
-        type: DataTypes.TINYINT(1),
-        defaultValue: 0,
+      two_factor_enabled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
       two_factor_secret: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
-      user_name: {
-        type: DataTypes.STRING(50),
+      username: {
+        type: DataTypes.STRING,
         unique: true,
       },
+
       avatar: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
       title: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING,
       },
       about: {
         type: DataTypes.TEXT,
       },
-      followers_count: {
+      posts_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      follower_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
@@ -43,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
-      like_count: {
+      likes_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
@@ -51,17 +60,56 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
       },
       website_url: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
       },
       twitter_url: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
       },
       github_url: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
       },
       linkedin_url: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
       },
+      verified_at: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
+
+      // location: {
+      //   type: DataTypes.STRING,
+      //   allowNull: true,
+      // },
+      // skills: {
+      //   type: DataTypes.TEXT,
+      //   allowNull: true,
+      //   get() {
+      //     const raw = this.getDataValue("skills");
+      //     return raw ? JSON.parse(raw) : [];
+      //   },
+      //   set(value) {
+      //     this.setDataValue("skills", JSON.stringify(value));
+      //   },
+      // },
+      // privacy: {
+      //   type: DataTypes.JSON,
+      //   defaultValue: {
+      //     profileVisibility: "public",
+      //     showEmail: false,
+      //     showFollowersCount: true,
+      //     showFollowingCount: true,
+      //     allowDirectMessages: true,
+      //     showOnlineStatus: true,
+      //   },
+      // },
+      // badges: {
+      //   type: DataTypes.JSON,
+      //   allowNull: true,
+      // },
+      // cover_image: {
+      //   type: DataTypes.STRING,
+      //   allowNull: true,
+      // },
     },
     {
       tableName: "users",
@@ -70,74 +118,51 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  User.associate = (db) => {
-    // User has many posts
-    User.hasMany(db.Post, {
+  user.associate = (db) => {
+    user.hasMany(db.Post, {
       foreignKey: "user_id",
       as: "posts",
     });
-
-    // User has many messages
-    User.hasMany(db.Message, {
-      foreignKey: "user_id",
-      as: "messages",
-    });
-
-    // User has many likes
-    User.hasMany(db.Like, {
-      foreignKey: "user_id",
-      as: "likes",
-    });
-
-    // User has many bookmarks
-    User.hasMany(db.Bookmark, {
-      foreignKey: "user_id",
-      as: "bookmarks",
-    });
-
-    // User has many comments
-    User.hasMany(db.Comment, {
+    user.hasMany(db.Comment, {
       foreignKey: "user_id",
       as: "comments",
     });
 
-    // User has one user_settings
-    User.hasOne(db.UserSetting, {
-      foreignKey: "user_id",
-      as: "settings",
+    user.hasMany(db.Message, {
+      foreignKey: "sender_id",
+      as: "messages",
     });
-
-    // User many-to-many with conversations through user_conversation
-    User.belongsToMany(db.Conversation, {
-      through: "UserConversation",
-      foreignKey: "user_id",
-      otherKey: "conversation_id",
+    user.hasMany(db.Conversation, {
+      foreignKey: "created_by",
       as: "conversations",
     });
 
-    // User many-to-many with notifications through user_notification
-    User.belongsToMany(db.Notification, {
-      through: "UserNotification",
+    user.hasMany(db.Like, {
       foreignKey: "user_id",
-      otherKey: "notification_id",
-      as: "notifications",
+      as: "likes",
     });
 
-    // Self-referencing many-to-many for follows
-    User.belongsToMany(db.User, {
+    user.belongsToMany(db.Post, {
+      through: "bookmarks",
+      foreignKey: "user_id",
+      otherKey: "post_id",
+      as: "bookmarkedPosts",
+    });
+
+    user.belongsToMany(db.User, {
       through: "follows",
+      as: "following",
       foreignKey: "following_id",
       otherKey: "followed_id",
-      as: "followers",
     });
 
-    User.belongsToMany(db.User, {
+    user.belongsToMany(db.User, {
       through: "follows",
+      as: "followers",
       foreignKey: "followed_id",
       otherKey: "following_id",
-      as: "following",
     });
   };
 
-  return User;
+  return user;
 };

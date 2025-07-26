@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("likes", {
+    await queryInterface.createTable("user_setting", {
       id: {
         type: Sequelize.INTEGER({ unsigned: true }),
         autoIncrement: true,
@@ -11,6 +11,8 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
+        unique: true,
         references: {
           model: "users",
           key: "id",
@@ -18,26 +20,22 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      likeable_type: {
-        type: Sequelize.STRING,
-      },
-      likeable_id: {
-        type: Sequelize.INTEGER,
+      data: {
+        type: Sequelize.TEXT,
+        defaultValue: null,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("likes");
+    await queryInterface.dropTable("user_setting");
   },
 };

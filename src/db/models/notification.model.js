@@ -1,18 +1,22 @@
 module.exports = (sequelize, DataTypes) => {
-  const Notification = sequelize.define(
+  const notification = sequelize.define(
     "Notification",
     {
       type: {
         type: DataTypes.STRING(50),
+        allowNull: false,
       },
       title: {
         type: DataTypes.STRING(255),
+        allowNull: false,
       },
       notifiable_type: {
         type: DataTypes.STRING(100),
+        allowNull: false,
       },
       notifiable_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
       },
     },
     {
@@ -22,15 +26,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Notification.associate = (db) => {
-    // Notification many-to-many with users through user_notification
-    Notification.belongsToMany(db.User, {
-      through: "UserNotification",
-      foreignKey: "notification_id",
-      otherKey: "user_id",
-      as: "users",
-    });
-  };
-
-  return Notification;
+  return notification;
 };

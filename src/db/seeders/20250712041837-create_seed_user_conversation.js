@@ -1,52 +1,37 @@
 "use strict";
 
-const { faker } = require("@faker-js/faker");
-
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Get existing user and conversation IDs
-    const users = await queryInterface.sequelize.query(
-      "SELECT id FROM users ORDER BY id ASC",
-      { type: Sequelize.QueryTypes.SELECT }
-    );
-
+    const users = await queryInterface.sequelize.query(`SELECT id FROM users`, {
+      type: queryInterface.sequelize.QueryTypes.SELECT,
+    });
     const conversations = await queryInterface.sequelize.query(
-      "SELECT id FROM conversations ORDER BY id ASC",
-      { type: Sequelize.QueryTypes.SELECT }
+      `SELECT id FROM conversations`,
+      { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
 
-    if (users.length === 0 || conversations.length === 0) {
-      throw new Error(
-        "Users and conversations must exist before creating user-conversation relationships."
-      );
-    }
+    const data = [];
+    const uniqueSet = new Set();
 
-    const userConversations = [];
-    const relationshipSet = new Set();
+    while (data.length < 20 && users.length > 0 && conversations.length > 0) {
+      const user = users[Math.floor(Math.random() * users.length)];
+      const conversation =
+        conversations[Math.floor(Math.random() * conversations.length)];
 
-    // Each conversation should have 2-5 users
-    for (const conversation of conversations) {
-      const numberOfUsers = faker.number.int({ min: 2, max: 5 });
-      const selectedUsers = faker.helpers.arrayElements(users, numberOfUsers);
+      const key = `${user.id}-${conversation.id}`;
 
-      for (const user of selectedUsers) {
-        const relationshipKey = `${user.id}-${conversation.id}`;
-
-        if (!relationshipSet.has(relationshipKey)) {
-          relationshipSet.add(relationshipKey);
-
-          userConversations.push({
-            user_id: user.id,
-            conversation_id: conversation.id,
-            created_at: faker.date.past({ years: 1 }),
-            updated_at: new Date(),
-          });
-        }
+      if (!uniqueSet.has(key)) {
+        uniqueSet.add(key);
+        data.push({
+          user_id: user.id,
+          conversation_id: conversation.id,
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
       }
     }
 
-    await queryInterface.bulkInsert("user_conversation", userConversations, {});
+    await queryInterface.bulkInsert("user_conversation", data, {});
   },
 
   async down(queryInterface, Sequelize) {

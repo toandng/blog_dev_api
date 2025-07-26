@@ -1,20 +1,30 @@
 module.exports = (sequelize, DataTypes) => {
-  const Like = sequelize.define(
+  const like = sequelize.define(
     "Like",
     {
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       likeable_type: {
         type: DataTypes.STRING,
+        allowNull: false,
       },
       likeable_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
       },
+
+      // is_like: {
+      //   type: DataTypes.BOOLEAN,
+      //   defaultValue: false,
+      // },
     },
     {
       tableName: "likes",
@@ -23,26 +33,26 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Like.associate = (db) => {
-    // Like belongs to user
-    Like.belongsTo(db.User, {
-      foreignKey: "user_id",
-      as: "user",
-    });
-
-    // Polymorphic associations
-    Like.belongsTo(db.Post, {
+  like.associate = (db) => {
+    like.belongsTo(db.User, { foreignKey: "user_id", as: "user" });
+    like.belongsTo(db.Post, {
       foreignKey: "likeable_id",
       constraints: false,
       as: "post",
+      scope: {
+        likeable_type: "post",
+      },
     });
 
-    Like.belongsTo(db.Comment, {
+    like.belongsTo(db.Comment, {
       foreignKey: "likeable_id",
       constraints: false,
       as: "comment",
+      scope: {
+        likeable_type: "comment",
+      },
     });
   };
 
-  return Like;
+  return like;
 };

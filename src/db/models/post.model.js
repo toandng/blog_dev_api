@@ -1,42 +1,65 @@
 module.exports = (sequelize, DataTypes) => {
-  const Post = sequelize.define(
+  const post = sequelize.define(
     "Post",
     {
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
-      title: DataTypes.STRING(255),
-      description: DataTypes.TEXT,
-      meta_title: DataTypes.STRING(255),
-      meta_description: DataTypes.TEXT,
-      thumbnail: DataTypes.STRING(255),
-      cover: DataTypes.STRING(255),
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      slug: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
+      },
+      thumbnail: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      description: {
+        type: DataTypes.TEXT,
+        defaultValue: null,
+      },
+      meta_title: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
+      meta_description: {
+        type: DataTypes.TEXT,
+        defaultValue: null,
+      },
+      content: {
+        type: DataTypes.TEXT,
+        defaultValue: null,
+      },
       status: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
         defaultValue: "draft",
       },
       visibility: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
         defaultValue: "public",
       },
-      content: DataTypes.TEXT,
-      slug: {
-        type: DataTypes.STRING(255),
-        unique: true,
-      },
-      view_count: {
+      views_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
-      like_count: {
+      likes_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
-      public_at: DataTypes.DATE,
+      published_at: {
+        type: DataTypes.DATE,
+      },
     },
     {
       tableName: "posts",
@@ -45,46 +68,47 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Post.associate = (db) => {
-    // ✅ Many-to-many with Topic (using alias: topics)
-    Post.belongsToMany(db.Topic, {
+  post.associate = (db) => {
+    post.belongsToMany(db.Topic, {
       through: "post_topic",
       foreignKey: "post_id",
       otherKey: "topic_id",
       as: "topics",
     });
 
-    Post.belongsTo(db.User, {
-      foreignKey: "user_id",
-      as: "user",
-    });
-
-    Post.hasMany(db.Comment, {
-      foreignKey: "post_id",
-      as: "comments",
-    });
-
-    Post.hasMany(db.Bookmark, {
-      foreignKey: "post_id",
-      as: "bookmarks",
-    });
-
-    Post.belongsToMany(db.Tag, {
-      through: "TagPost",
+    post.belongsToMany(db.Tag, {
+      through: "post_tag",
       foreignKey: "post_id",
       otherKey: "tag_id",
       as: "tags",
     });
 
-    Post.hasMany(db.Like, {
+    post.belongsTo(db.User, {
+      foreignKey: "user_id",
+      as: "user",
+    });
+
+    post.hasMany(db.Comment, {
+      foreignKey: "post_id",
+      as: "comments",
+    });
+
+    post.hasMany(db.Like, {
       foreignKey: "likeable_id",
       constraints: false,
       scope: {
-        likeable_type: "Post",
+        likeable_type: "post",
       },
       as: "likes",
     });
+
+    post.belongsToMany(db.User, {
+      through: "bookmarks",
+      foreignKey: "post_id",
+      otherKey: "user_id",
+      as: "usersBookmarked",
+    });
   };
 
-  return Post;
+  return post;
 };

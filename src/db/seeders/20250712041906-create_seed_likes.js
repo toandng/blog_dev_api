@@ -1,52 +1,31 @@
 "use strict";
 
-const { faker } = require("@faker-js/faker");
-
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Get existing user and post IDs
-    const users = await queryInterface.sequelize.query(
-      "SELECT id FROM users ORDER BY id ASC",
-      { type: Sequelize.QueryTypes.SELECT }
-    );
+    const posts = await queryInterface.sequelize.query(`SELECT id FROM posts`, {
+      type: queryInterface.sequelize.QueryTypes.SELECT,
+    });
 
-    const posts = await queryInterface.sequelize.query(
-      "SELECT id FROM posts ORDER BY id ASC",
-      { type: Sequelize.QueryTypes.SELECT }
-    );
+    const users = await queryInterface.sequelize.query(`SELECT id FROM users`, {
+      type: queryInterface.sequelize.QueryTypes.SELECT,
+    });
 
-    if (users.length === 0 || posts.length === 0) {
-      throw new Error("Users and posts must exist before creating likes.");
-    }
-
+    const likesSet = new Set();
     const likes = [];
-    const likeSet = new Set();
-    const likeableTypes = ["Post", "Comment"];
 
-    // Create likes for posts
-    for (let i = 0; i < 300; i++) {
-      const userId = faker.helpers.arrayElement(users).id;
-      const likeableType = faker.helpers.arrayElement(likeableTypes);
-      let likeableId;
+    while (likes.length < 20) {
+      const user = users[Math.floor(Math.random() * users.length)];
+      const post = posts[Math.floor(Math.random() * posts.length)];
 
-      if (likeableType === "Post") {
-        likeableId = faker.helpers.arrayElement(posts).id;
-      } else {
-        // For comments, we'll use random IDs (assuming comments will exist)
-        likeableId = faker.number.int({ min: 1, max: 200 });
-      }
+      const key = `${user.id}-Post-${post.id}`;
 
-      const likeKey = `${userId}-${likeableType}-${likeableId}`;
-
-      if (!likeSet.has(likeKey)) {
-        likeSet.add(likeKey);
-
+      if (!likesSet.has(key)) {
+        likesSet.add(key);
         likes.push({
-          user_id: userId,
-          likeable_type: likeableType,
-          likeable_id: likeableId,
-          created_at: faker.date.past({ years: 1 }),
+          user_id: user.id,
+          likeable_type: "Post",
+          likeable_id: post.id,
+          created_at: new Date(),
           updated_at: new Date(),
         });
       }

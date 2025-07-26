@@ -1,30 +1,27 @@
 module.exports = (sequelize, DataTypes) => {
-  const Topic = sequelize.define(
+  const topic = sequelize.define(
     "Topic",
     {
       name: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING,
+        allowNull: false,
       },
       slug: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
         unique: true,
+        allowNull: false,
       },
       image: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
+        defaultValue: null,
       },
       description: {
         type: DataTypes.TEXT,
+        defaultValue: null,
       },
-      post_count: {
+      posts_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
-      },
-      post_id: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: "posts",
-          key: "id",
-        },
       },
     },
     {
@@ -34,13 +31,14 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Topic.associate = (db) => {
-    // Topic belongs to post
-    Topic.belongsToMany(db.Post, {
+  topic.associate = (db) => {
+    topic.belongsToMany(db.Post, {
       through: "post_topic",
+      foreignKey: "topic_id",
+      otherKey: "post_id",
       as: "posts",
     });
   };
 
-  return Topic;
+  return topic;
 };

@@ -1,3 +1,5 @@
+"use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -8,12 +10,13 @@ module.exports = {
         primaryKey: true,
       },
       name: {
-        type: Sequelize.STRING(100),
-        defaultValue: null,
+        type: Sequelize.STRING(150),
+        allowNull: false,
       },
       slug: {
         type: Sequelize.STRING(255),
         unique: true,
+        allowNull: false,
       },
       image: {
         type: Sequelize.STRING(255),
@@ -21,29 +24,19 @@ module.exports = {
       },
       description: {
         type: Sequelize.TEXT,
+        defaultValue: null,
       },
-      post_count: {
+      posts_count: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-      post_id: {
-        type: Sequelize.INTEGER({ unsigned: true }),
-        references: {
-          model: "posts",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },

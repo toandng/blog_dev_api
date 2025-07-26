@@ -4,7 +4,7 @@ const postService = require("@/service/post.service");
 const index = async (req, res) => {
   const { posts } = await postService.getAll();
 
-  res.json({ data: posts });
+  response.succsess(res, 200, posts);
 };
 const getBySlug = async (req, res) => {
   try {
@@ -15,9 +15,10 @@ const getBySlug = async (req, res) => {
         message: "Post not found",
       });
     }
+
     res.json({
       success: true,
-      data: post,
+      post,
     });
   } catch (error) {
     res.status(500).json({
@@ -27,7 +28,23 @@ const getBySlug = async (req, res) => {
     });
   }
 };
+const getRelatedPosts = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { limit = 3 } = req.query;
 
+    const relatedPosts = await postService.getRelatedPosts(
+      postId,
+      req.user,
+      parseInt(limit)
+    );
+
+    response.succsess(res, 200, relatedPosts);
+  } catch (error) {
+    console.error("Error fetching related posts:", error);
+    response.error(res, 500, "Error fetching related posts", error.message);
+  }
+};
 const update = async (req, res) => {
   const post = await postService.update(req.params.id, req.body);
   res.json(post);
@@ -43,8 +60,9 @@ const remove = async (req, res) => {
 
 module.exports = {
   index,
+  getBySlug,
+  getRelatedPosts,
   update,
   create,
   remove,
-  getBySlug,
 };

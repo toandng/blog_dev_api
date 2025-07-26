@@ -11,6 +11,7 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
@@ -20,6 +21,7 @@ module.exports = {
       },
       notification_id: {
         type: Sequelize.INTEGER({ unsigned: true }),
+        allowNull: false,
         references: {
           model: "notifications",
           key: "id",
@@ -33,15 +35,23 @@ module.exports = {
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
+
+    // Add composite unique constraint
+    await queryInterface.addIndex(
+      "user_notification",
+      ["user_id", "notification_id"],
+      {
+        unique: true,
+        name: "user_notification_user_id_notification_id_unique",
+      }
+    );
   },
 
   async down(queryInterface, Sequelize) {

@@ -1,18 +1,16 @@
 "use strict";
-
 const { faker } = require("@faker-js/faker");
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     const conversations = [];
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 5; i++) {
       conversations.push({
-        name: faker.lorem.words({ min: 2, max: 5 }),
-        avatar: faker.datatype.boolean() ? faker.image.avatar() : null,
-        last_message_at: faker.date.recent({ days: 30 }),
-        created_at: faker.date.past({ years: 1 }),
+        name: faker.lorem.words(2),
+        avatar: faker.image.avatar(),
+        last_message_at: new Date(),
+        created_at: new Date(),
         updated_at: new Date(),
       });
     }

@@ -3,40 +3,44 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("user_settings", {
+    await queryInterface.createTable("refresh_tokens", {
       id: {
-        type: Sequelize.INTEGER({ unsigned: true }),
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
+        allowNull: false,
       },
       user_id: {
-        type: Sequelize.INTEGER({ unsigned: true }),
-        unique: true,
+        type: Sequelize.INTEGER({
+          unsigned: true,
+        }),
+        allowNull: false,
         references: {
           model: "users",
           key: "id",
         },
-        onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      data: {
-        type: Sequelize.JSON,
-        defaultValue: null,
+      token: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      expired_at: {
+        type: Sequelize.DATE,
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.NOW,
       },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("user_settings");
+    await queryInterface.dropTable("refresh_tokens");
   },
 };
