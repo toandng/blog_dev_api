@@ -45,12 +45,27 @@ const getRelatedPosts = async (req, res) => {
     response.error(res, 500, "Error fetching related posts", error.message);
   }
 };
+const getByUserName = async (req, res) => {
+  try {
+    const posts = await postService.getByUserName(
+      req.params.username,
+      req.user
+    );
+
+    response.succsess(res, 200, posts);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};
 const update = async (req, res) => {
   const post = await postService.update(req.params.id, req.body);
+
   res.json(post);
 };
 const create = async (req, res) => {
-  const post = await postService.create(req.body);
+  const post = await postService.create(req.file, req.body, req.user);
+  console.log(post);
+
   res.json(post);
 };
 const remove = async (req, res) => {
@@ -62,6 +77,7 @@ module.exports = {
   index,
   getBySlug,
   getRelatedPosts,
+  getByUserName,
   update,
   create,
   remove,

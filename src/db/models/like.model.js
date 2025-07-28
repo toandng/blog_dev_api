@@ -21,10 +21,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
 
-      // is_like: {
-      //   type: DataTypes.BOOLEAN,
-      //   defaultValue: false,
-      // },
+      is_like: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       tableName: "likes",

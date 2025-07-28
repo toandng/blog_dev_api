@@ -19,15 +19,15 @@ async function sendVerifyEmailJob(job) {
       throw new Error(`User not found with ID: ${userId}`);
     }
 
-    const { access_token } = jwtService.generateAccessToken(
+    const { token } = jwtService.generateAccessToken(
       userId,
       process.env.MAIL_JWT_SECRET
     );
 
     // Tạo link xác minh email
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${access_token}`;
+    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
-    const data = { access_token, userId, verifyUrl };
+    const data = { token, userId, verifyUrl };
     const template = await loadEmail("verify-email", data);
 
     if (!template) {

@@ -6,45 +6,47 @@ const index = async (req, res) => {
 
   response.succsess(res, 200, topics);
 };
-const getBySlug = async (req, res) => {
+const getOne = async (req, res) => {
   try {
-    const post = await topicService.getBySlug(req.params.slug);
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: "Topic not found",
-      });
-    }
-    res.json({
-      success: true,
-      data: post,
-    });
+    const topic = await topicService.getById(req.params.id);
+    response.succsess(res, 200, topic);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message,
-    });
+    response.error(res, 400, error.message);
+  }
+};
+const getBySlug = async (req, res) => {
+  console.log("nos dday af", req.params.slug);
+
+  try {
+    const topic = await topicService.getBySlug(req.params.slug);
+
+    response.succsess(res, 200, topic);
+  } catch (error) {
+    response.error(res, 400, error.message);
   }
 };
 
-// const update = async (req, res) => {
-//   const post = await topicService.update(req.params.id, req.body);
-//   res.json(post);
-// };
-// const create = async (req, res) => {
-//   const post = await topicService.create(req.body);
-//   res.json(post);
-// };
-// const remove = async (req, res) => {
-//   await topicService.remove(req.params.id);
-//   res.status(204).send();
-// };
+const create = async (req, res) => {
+  const topic = await topicService.create(req.body);
+  res.json(topic);
+};
+
+const update = async (req, res) => {
+  const topic = await topicService.update(req.params.id, req.body);
+
+  res.json(topic);
+};
+
+const remove = async (req, res) => {
+  await topicService.remove(req.params.id);
+  res.status(204).send();
+};
 
 module.exports = {
   index,
-  // update,
-  // create,
-  // remove,
+  getOne,
+  update,
+  create,
+  remove,
   getBySlug,
 };

@@ -36,14 +36,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      // like_count: {
-      //   type: DataTypes.INTEGER,
-      //   defaultValue: 0,
-      // },
-      // deleted_at: {
-      //   type: DataTypes.DATE,
-      //   defaultValue: null,
-      // },
+      like_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
       // edited_at: {
       //   type: DataTypes.DATE,
       //   defaultValue: null,

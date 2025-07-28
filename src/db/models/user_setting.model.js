@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: "user_settings",
+      tableName: "user_setting",
       underscored: true,
       timestamps: true,
     }
@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     // UserSetting belongs to user
     UserSetting.belongsTo(db.User, {
       foreignKey: "user_id",
-      as: "user",
+      // as: "user",
     });
   };
 

@@ -1,5 +1,8 @@
 const { Post, Topic, User, Sequelize, Op } = require("@/db/models");
 const likesService = require("@/service/like.service");
+const topicsService = require("@/service/topic.service");
+const usersService = require("@/service/user.service");
+const slugify = require("slugify");
 const { where } = require("sequelize");
 class PostsService {
   async getAll() {
@@ -19,6 +22,29 @@ class PostsService {
     const likes = await likesService.getAll();
     const postIds = posts.map((post) => post.id);
     return { posts: result, postIds };
+  }
+  canUserViewPost(post, currentUser, followingIds = []) {
+    if (!currentUser) {
+      return post.visibility === "public" || !post.visibility;
+    }
+
+    if (post.user_id === currentUser.id) {
+      return true;
+    }
+
+    if (post.visibility === "public" || !post.visibility) {
+      return true;
+    }
+
+    if (post.visibility === "followers") {
+      return followingIds.includes(post.user_id);
+    }
+
+    if (post.visibility === "private") {
+      return false;
+    }
+
+    return false;
   }
 
   async getById(id) {
@@ -40,9 +66,84 @@ class PostsService {
     }
     return post;
   }
-  async getBySlug(slug) {
-    // console.log(slug);
 
+  async getByUserName(username, currentUser) {
+    const user = await User.findOne({
+      where: {
+        username,
+      },
+    });
+
+    if (!user) throw new Error("Not found user by username");
+
+    const posts = await Post.findAll({
+      where: {
+        user_id: user.id,
+        status: "published",
+        published_at: {
+          [Op.lte]: new Date(),
+        },
+      },
+      include: [
+        { model: Topic, as: "topics" },
+        {
+          model: User,
+          as: "user",
+          attributes: [
+            "id",
+            "avatar",
+            "username",
+            // "fullname",
+            "first_name",
+            "last_name",
+          ],
+        },
+        // {
+        //   model: User,
+        //   as: "usersBookmarked",
+        //   attributes: ["id"],
+        // },
+      ],
+    });
+
+    const followingIds = await usersService.getUserFollowingIds(currentUser);
+
+    const postVisible = posts.filter((post) =>
+      this.canUserViewPost(post, currentUser, followingIds)
+    );
+
+    return this.handleLikeAndBookmarkFlags(postVisible, currentUser);
+  }
+
+  handleLikeAndBookmarkFlags = async (posts, currentUser) => {
+    if (!currentUser) return posts;
+
+    const postIds = posts.map((post) => post.id);
+
+    const likes = await likesService.getAll("Post", postIds);
+
+    const currentUserLikes = new Set();
+    const currentUserBookmark = new Set();
+
+    likes.forEach((like) => {
+      if (like.user_id === currentUser.id) {
+        currentUserLikes.add(like.likeable_id);
+      }
+    });
+
+    return posts.map((post) => {
+      post.usersBookmarked?.forEach((item) => {
+        if (item.id === currentUser.id) currentUserBookmark.add(post.id);
+      });
+
+      return {
+        ...post.toJSON(),
+        is_like: currentUserLikes.has(post.id),
+        is_bookmark: currentUserBookmark.has(post.id),
+      };
+    });
+  };
+  async getBySlug(slug) {
     const post = await Post.findOne({
       where: { slug },
       include: [
@@ -50,6 +151,7 @@ class PostsService {
         { model: User, as: "user" },
       ],
     });
+
     if (post?.user) {
       post.user.full_name = `${post.user.first_name} ${post.user.last_name}`;
     }
@@ -71,28 +173,25 @@ class PostsService {
         },
       });
 
-      if (!currentPost) return [];
+      if (!currentPost) throw new Error("Post not found");
 
       const topicIds = currentPost.topics.map((topic) => topic.id);
 
       let relatedPosts = [];
 
-      if (topicIds.length > 0) {
+      if (topicIds.length === 0) {
         // Tìm bài viết có cùng topic
         relatedPosts = await Post.findAll({
           where: {
             id: { [Op.not]: currentPostId },
             status: "published",
+            limit: 3,
             published_at: { [Op.lte]: new Date() },
           },
           include: [
             {
               model: Topic,
               as: "topics",
-              where: {
-                id: { [Op.in]: topicIds },
-              },
-              through: { attributes: [] },
             },
             {
               model: User,
@@ -114,6 +213,7 @@ class PostsService {
             Sequelize.literal("RAND()"),
           ],
         });
+        relatedPosts = Post;
       }
 
       // Nếu không đủ bài viết cùng topic, lấy thêm bài viết khác
@@ -160,8 +260,104 @@ class PostsService {
     }
   }
 
-  async create(data) {
-    const post = await Post.create(data);
+  async create(thumbnailPath, data, currentUser) {
+    if (!currentUser) throw new Error("You must be logged to edit");
+
+    console.log("Create post data:", data);
+    console.log("Topics received:", data.topics, typeof data.topics);
+
+    const updateData = {};
+
+    if (thumbnailPath) {
+      updateData.thumbnail = thumbnailPath?.path.replace(/\\/g, "/");
+    }
+
+    if (!data.published_at) {
+      updateData.published_at = Date.now();
+    }
+
+    const { topics, ...remain } = data;
+    const newData = { ...updateData, ...remain };
+
+    // Generate unique slug
+    const baseSlug = slugify(newData.title, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await Post.findOne({ where: { slug } })) {
+      slug = `${baseSlug}-${counter++}`;
+    }
+
+    // Create post first
+    const post = await Post.create({
+      ...newData,
+      slug,
+      user_id: currentUser.id,
+    });
+
+    // FIX: Handle topics properly
+    if (topics) {
+      let topicsArray = [];
+
+      try {
+        // Case 1: topics is already an array
+        if (Array.isArray(topics)) {
+          topicsArray = topics;
+        }
+        // Case 2: topics is a JSON string
+        else if (typeof topics === "string") {
+          topicsArray = JSON.parse(topics);
+        }
+        // Case 3: topics from FormData might be individual fields
+        else if (typeof topics === "object") {
+          // Handle case where topics comes as {"0": "React", "1": "JavaScript"}
+          topicsArray = Object.values(topics);
+        }
+
+        console.log("Processed topics array:", topicsArray);
+
+        // Validate topics array
+        if (Array.isArray(topicsArray) && topicsArray.length > 0) {
+          await Promise.all(
+            topicsArray.map(async (topicName) => {
+              if (
+                topicName &&
+                typeof topicName === "string" &&
+                topicName.trim()
+              ) {
+                try {
+                  const { topic, created } = await topicsService.findOrCreate(
+                    topicName.trim()
+                  );
+
+                  if (!created && topic) {
+                    topic.posts_count += 1;
+                    await topic.save();
+                  }
+
+                  if (topic) {
+                    await post.addTopic(topic.id);
+                  }
+                } catch (topicError) {
+                  console.error(
+                    `Error processing topic "${topicName}":`,
+                    topicError
+                  );
+                }
+              }
+            })
+          );
+        }
+      } catch (parseError) {
+        console.error("Error parsing topics:", parseError);
+        console.log("Raw topics data:", topics);
+      }
+    }
+
+    // Update user posts count
+    currentUser.posts_count = currentUser.posts_count + 1;
+    await currentUser.save();
+
     return post;
   }
   async update(id, data) {

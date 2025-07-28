@@ -33,61 +33,60 @@ class TopicService {
   }
 
   async getBySlug(slug) {
-    // console.log(slug);
+    try {
+      const topic = await Topic.findOne({ where: { slug } });
 
-    // Nếu đây là tìm post theo slug
-    const post = await Post.findOne({
-      where: { slug },
-      include: [
-        { model: Topic, as: "topics" },
-        { model: User, as: "user" },
-      ],
-    });
-
-    if (post?.user) {
-      post.user.full_name = `${post.user.first_name} ${post.user.last_name}`;
+      return topic;
+    } catch (error) {
+      throw new Error("Invalid slug");
     }
-    return post;
   }
 
-  // Nếu bạn muốn tìm topic theo slug
-  async getTopicBySlug(slug) {
-    const topic = await Topic.findOne({
-      where: { slug },
-      include: [
-        {
-          model: Post,
-          as: "posts",
-          include: [{ model: User, as: "user" }],
-        },
-      ],
+  async findOrCreate(name) {
+    const baseSlug = slugify(name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await Topic.findOne({ where: { slug } })) {
+      slug = `${baseSlug}-${counter++}`;
+    }
+
+    const [topic, created] = await Topic.findOrCreate({
+      where: { name },
+      defaults: {
+        name,
+        slug,
+        image: faker.image.urlPicsumPhotos(),
+        description: faker.lorem.sentence(),
+        posts_count: 0,
+      },
     });
+
+    return { topic, created };
+  }
+  async create(data) {
+    const topic = await Topic.create(data);
     return topic;
   }
+  async update(id, data) {
+    try {
+      await Topic.update(data, {
+        where: { id },
+      });
 
-  // async create(data) {
-  //   const topic = await Topic.create(data);
-  //   return topic;
-  // }
+      return await Topic.findByPk(id);
+    } catch (error) {
+      return console.log("Lỗi khi update: ", error);
+    }
+  }
 
-  // async update(id, data) {
-  //   try {
-  //     await Topic.update(data, {
-  //       where: { id },
-  //     });
-  //     return await Topic.findByPk(id);
-  //   } catch (error) {
-  //     console.log("Lỗi khi update", error);
-  //     return null;
-  //   }
-  // }
+  async remove(id) {
+    await Topic.destroy({
+      where: { id },
+    });
 
-  // async remove(id) {
-  //   await Topic.destroy({
-  //     where: { id },
-  //   });
-  //   return null;
-  // }
+    return null;
+  }
 }
 
 module.exports = new TopicService();
