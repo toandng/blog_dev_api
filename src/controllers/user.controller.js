@@ -1,6 +1,7 @@
 const userService = require("@/service/user.service");
-const response = require("@/utils/response");
-const getUserByUsername = async (req, res) => {
+const response = require("../utils/response");
+
+exports.getUserByUsername = async (req, res) => {
   try {
     const result = await userService.getUserByUsername(
       req.params.username,
@@ -8,13 +9,11 @@ const getUserByUsername = async (req, res) => {
     );
     response.succsess(res, 200, result);
   } catch (error) {
-    console.log(123);
-
     response.error(res, 400, error.message);
   }
 };
 
-const toggleFollow = async (req, res) => {
+exports.toggleFollow = async (req, res) => {
   try {
     const result = await userService.toggleFollow(req.user, +req.params.userId);
     response.succsess(res, 200, result);
@@ -23,7 +22,7 @@ const toggleFollow = async (req, res) => {
   }
 };
 
-const checkFollowing = async (req, res) => {
+exports.checkFollowing = async (req, res) => {
   try {
     const result = await userService.checkFollowing(
       req.user,
@@ -35,8 +34,20 @@ const checkFollowing = async (req, res) => {
   }
 };
 
-module.exports = {
-  getUserByUsername,
-  toggleFollow,
-  checkFollowing,
+exports.editProfile = async (req, res) => {
+  try {
+    const result = await userService.editProfile(req.files, req.body, req.user);
+    response.succsess(res, 200, result);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
 };
+
+// exports.settings = async (req, res) => {
+//   try {
+//     await userService.settings(req.body, req.user);
+//     response.succsess(res, 201, true);
+//   } catch (error) {
+//     response.error(res, 400, error.message);
+//   }
+// };

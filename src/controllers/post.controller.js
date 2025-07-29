@@ -28,6 +28,14 @@ const getBySlug = async (req, res) => {
     });
   }
 };
+const getListByMe = async (req, res) => {
+  try {
+    const posts = await postService.getListByMe(req.user);
+    response.succsess(res, 200, posts);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};
 const getRelatedPosts = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -63,10 +71,12 @@ const update = async (req, res) => {
   res.json(post);
 };
 const create = async (req, res) => {
-  const post = await postService.create(req.file, req.body, req.user);
-  console.log(post);
-
-  res.json(post);
+  try {
+    const post = await postService.create(req.file, req.body, req.user);
+    response.succsess(res, 200, post);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
 };
 const remove = async (req, res) => {
   await postService.remove(req.params.id);
@@ -76,6 +86,7 @@ const remove = async (req, res) => {
 module.exports = {
   index,
   getBySlug,
+  getListByMe,
   getRelatedPosts,
   getByUserName,
   update,

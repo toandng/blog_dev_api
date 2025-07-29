@@ -6,6 +6,7 @@ const userRouter = require("./user.route");
 const postRouter = require("./post.route");
 const topicRouter = require("./topic.route");
 const commentRouter = require("./comment.route");
+const likeRouter = require("./like.route");
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/profile", userRouter);
 router.use("/topics", topicRouter);
 router.use("/comments", commentRouter);
 router.use("/users", userRouter);
+// router.use("/likes", likeRouter);
 
 module.exports = router;

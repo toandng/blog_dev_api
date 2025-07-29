@@ -17,6 +17,21 @@ class CommentService {
 
     return comments;
   }
+  async getById() {
+    const comment = await Comment.findOne({
+      where: { id },
+      include: [{ model: Post, as: "post" }],
+    });
+
+    return comment;
+  }
+  async getBySlug(slug) {
+    const comment = await Comment.findOne({
+      where: { slug },
+      include: [{ model: Post, as: "post" }],
+    });
+    return comment;
+  }
 
   async getAllCommentsInPost(postId, currentUser) {
     const comments = await Comment.findAll({
@@ -137,7 +152,7 @@ class CommentService {
       where: {
         likeable_id: commentId,
         user_id: currentUser.id,
-        likeable_type: "Comment",
+        // likeable_type: "Comment",
       },
     });
     const comment = await Comment.findByPk(commentId);

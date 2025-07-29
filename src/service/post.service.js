@@ -1,9 +1,9 @@
+const { where } = require("sequelize");
 const { Post, Topic, User, Sequelize, Op } = require("@/db/models");
 const likesService = require("@/service/like.service");
 const topicsService = require("@/service/topic.service");
 const usersService = require("@/service/user.service");
 const slugify = require("slugify");
-const { where } = require("sequelize");
 class PostsService {
   async getAll() {
     const posts = await Post.findAll({
@@ -23,6 +23,7 @@ class PostsService {
     const postIds = posts.map((post) => post.id);
     return { posts: result, postIds };
   }
+
   canUserViewPost(post, currentUser, followingIds = []) {
     if (!currentUser) {
       return post.visibility === "public" || !post.visibility;
@@ -65,6 +66,27 @@ class PostsService {
       post.user.full_name = `${post.user.first_name} ${post.user.last_name}`;
     }
     return post;
+  }
+  async getListByMe(currentUser) {
+    try {
+      const post = await Post.findAll({
+        where: { user_id: currentUser.id },
+        include: [
+          {
+            model: Topic,
+            as: "topics",
+          },
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "avatar", "first_name", "last_name", "username"],
+          },
+        ],
+      });
+      return this.handleLikeAndBookmarkFlags(post, currentUser);
+    } catch (error) {
+      throw new Error("Get fail");
+    }
   }
 
   async getByUserName(username, currentUser) {
@@ -263,9 +285,6 @@ class PostsService {
   async create(thumbnailPath, data, currentUser) {
     if (!currentUser) throw new Error("You must be logged to edit");
 
-    console.log("Create post data:", data);
-    console.log("Topics received:", data.topics, typeof data.topics);
-
     const updateData = {};
 
     if (thumbnailPath) {
@@ -279,7 +298,6 @@ class PostsService {
     const { topics, ...remain } = data;
     const newData = { ...updateData, ...remain };
 
-    // Generate unique slug
     const baseSlug = slugify(newData.title, { lower: true, strict: true });
     let slug = baseSlug;
     let counter = 1;
@@ -288,73 +306,26 @@ class PostsService {
       slug = `${baseSlug}-${counter++}`;
     }
 
-    // Create post first
     const post = await Post.create({
       ...newData,
       slug,
       user_id: currentUser.id,
     });
 
-    // FIX: Handle topics properly
-    if (topics) {
-      let topicsArray = [];
+    const newTopics = JSON.parse(topics);
+    await Promise.all(
+      newTopics.map(async (item) => {
+        const { topic, created } = await topicsService.findOrCreate(item);
 
-      try {
-        // Case 1: topics is already an array
-        if (Array.isArray(topics)) {
-          topicsArray = topics;
-        }
-        // Case 2: topics is a JSON string
-        else if (typeof topics === "string") {
-          topicsArray = JSON.parse(topics);
-        }
-        // Case 3: topics from FormData might be individual fields
-        else if (typeof topics === "object") {
-          // Handle case where topics comes as {"0": "React", "1": "JavaScript"}
-          topicsArray = Object.values(topics);
+        if (!created) {
+          topic.posts_count += 1;
+          await topic.save();
         }
 
-        console.log("Processed topics array:", topicsArray);
+        await post.addTopic(topic.id);
+      })
+    );
 
-        // Validate topics array
-        if (Array.isArray(topicsArray) && topicsArray.length > 0) {
-          await Promise.all(
-            topicsArray.map(async (topicName) => {
-              if (
-                topicName &&
-                typeof topicName === "string" &&
-                topicName.trim()
-              ) {
-                try {
-                  const { topic, created } = await topicsService.findOrCreate(
-                    topicName.trim()
-                  );
-
-                  if (!created && topic) {
-                    topic.posts_count += 1;
-                    await topic.save();
-                  }
-
-                  if (topic) {
-                    await post.addTopic(topic.id);
-                  }
-                } catch (topicError) {
-                  console.error(
-                    `Error processing topic "${topicName}":`,
-                    topicError
-                  );
-                }
-              }
-            })
-          );
-        }
-      } catch (parseError) {
-        console.error("Error parsing topics:", parseError);
-        console.log("Raw topics data:", topics);
-      }
-    }
-
-    // Update user posts count
     currentUser.posts_count = currentUser.posts_count + 1;
     await currentUser.save();
 

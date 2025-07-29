@@ -7,6 +7,17 @@ const index = async (req, res) => {
   response.succsess(res, 200, comments);
 };
 
+const getBySlug = async (req, res) => {
+  const comments = await commentService.getBySlug();
+
+  response.succsess(res, 200, comments);
+};
+const getOne = async (req, res) => {
+  const comments = await commentService.getById();
+
+  response.succsess(res, 200, comments);
+};
+
 const getAllCommentsInPost = async (req, res) => {
   const comments = await commentService.getAllCommentsInPost(
     req.params.postId,
@@ -24,32 +35,14 @@ const toggleLike = async (req, res) => {
       req.user,
       req.params.commentId
     );
+    console.log(result);
+
     response.succsess(res, 200, result);
   } catch (error) {
     response.error(res, 400, error.message);
   }
 };
-// const getBySlug = async (req, res) => {
-//   try {
-//     const post = await topicService.getBySlug(req.params.slug);
-//     if (!post) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Topic not found",
-//       });
-//     }
-//     res.json({
-//       success: true,
-//       data: post,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Internal server error",
-//       error: error.message,
-//     });
-//   }
-// };
+
 const create = async (req, res) => {
   try {
     console.log("Request body:", req.body);
@@ -114,5 +107,6 @@ module.exports = {
   create,
   remove,
   toggleLike,
-  // getBySlug,
+  getBySlug,
+  getOne,
 };
