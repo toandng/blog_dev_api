@@ -43,8 +43,16 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
+      like_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
       deleted_at: {
         type: Sequelize.DATE,
+        defaultValue: null,
+      },
+      edited_at: {
+        type: DataTypes.DATE,
         defaultValue: null,
       },
       created_at: {

@@ -1,5 +1,6 @@
 const response = require("@/utils/response");
 const postService = require("@/service/post.service");
+const { post } = require("@/routes/api");
 
 const index = async (req, res) => {
   const { posts } = await postService.getAll();
@@ -36,21 +37,23 @@ const getListByMe = async (req, res) => {
     response.error(res, 400, error.message);
   }
 };
+const getByTopicId = async (req, res) => {
+  try {
+    const posts = await postService.getByTopicId(req.user, req.params.topicId);
+    response.succsess(res, 200, posts);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};
 const getRelatedPosts = async (req, res) => {
   try {
-    const { postId } = req.params;
-    const { limit = 3 } = req.query;
-
-    const relatedPosts = await postService.getRelatedPosts(
-      postId,
-      req.user,
-      parseInt(limit)
+    const posts = await postService.getRelatedPosts(
+      req.params.postId,
+      req.user
     );
-
-    response.succsess(res, 200, relatedPosts);
+    response.succsess(res, 200, posts);
   } catch (error) {
-    console.error("Error fetching related posts:", error);
-    response.error(res, 500, "Error fetching related posts", error.message);
+    response.error(res, 400, error.message);
   }
 };
 const getByUserName = async (req, res) => {
@@ -88,6 +91,7 @@ module.exports = {
   getBySlug,
   getListByMe,
   getRelatedPosts,
+  getByTopicId,
   getByUserName,
   update,
   create,

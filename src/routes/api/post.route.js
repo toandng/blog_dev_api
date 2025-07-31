@@ -6,9 +6,11 @@ const checkAuth = require("@/middlewares/checkAuth");
 const upload = require("@/middlewares/upload");
 
 router.get("/", checkAuth, postController.index);
-router.get("/me", checkAuth, postController.index);
+router.get("/me", checkAuth, postController.getListByMe);
 
 router.get("/slug/:slug", postController.getBySlug);
+router.get("/topic/:topicId", postController.getByTopicId);
+
 router.get("/:postId/related", postController.getRelatedPosts);
 router.get("/user/:username", checkAuth, postController.getByUserName);
 

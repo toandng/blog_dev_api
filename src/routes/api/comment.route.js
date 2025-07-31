@@ -12,7 +12,7 @@ router.get("/post/:postId", checkAuth, commentController.getAllCommentsInPost);
 router.post("/", checkAuth, commentController.create);
 router.post("/:commentId/like", checkAuth, commentController.toggleLike);
 
-router.put("/:id", checkAuth, commentController.update);
 router.delete("/:id", commentController.remove);
+router.put("/:id", checkAuth, commentController.update);
 
 module.exports = router;

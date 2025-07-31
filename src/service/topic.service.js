@@ -5,26 +5,13 @@ const { Op } = require("sequelize");
 
 class TopicService {
   async getAll() {
-    const topics = await Topic.findAll({
-      include: [
-        {
-          model: Post,
-          as: "posts",
-          attributes: [],
-          through: { attributes: [] },
-        },
-      ],
-      attributes: {
-        include: [
-          [sequelize.fn("COUNT", sequelize.col("posts.id")), "post_count"],
-        ],
-      },
-      group: ["Topic.id"],
-      order: [["id", "ASC"]],
-    });
-    // console.log(topics);
-
-    return topics;
+    try {
+      const topics = await Topic.findAll();
+      console.log(topics);
+      return topics;
+    } catch (error) {
+      throw new Error("Unable to fetch the list of topics");
+    }
   }
 
   async getById(id) {

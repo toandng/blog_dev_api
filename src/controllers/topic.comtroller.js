@@ -2,9 +2,12 @@ const response = require("@/utils/response");
 const topicService = require("@/service/topic.service");
 
 const index = async (req, res) => {
-  const topics = await topicService.getAll();
-
-  response.succsess(res, 200, topics);
+  try {
+    const topics = await topicService.getAll();
+    response.succsess(res, 200, topics);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
 };
 const getOne = async (req, res) => {
   try {
@@ -15,8 +18,6 @@ const getOne = async (req, res) => {
   }
 };
 const getBySlug = async (req, res) => {
-  console.log("nos dday af", req.params.slug);
-
   try {
     const topic = await topicService.getBySlug(req.params.slug);
 

@@ -47,7 +47,7 @@ class CommentService {
         "parent_id",
         "content",
         "like_count",
-        // "edited_at",
+        "edited_at",
         "deleted_at",
         "created_at",
         "updated_at",
@@ -81,7 +81,7 @@ class CommentService {
             "content",
             "like_count",
             "deleted_at",
-            // "edited_at",
+            "edited_at",
 
             "created_at",
             "updated_at",
@@ -106,8 +106,46 @@ class CommentService {
       ],
     });
 
-    return comments;
+    return this.likeCommentFlags(comments, currentUser);
   }
+  likeCommentFlags = async (comments, currentUser) => {
+    if (!currentUser) return comments;
+
+    const allComments = [];
+    comments.forEach((comment) => {
+      allComments.push(comment);
+      if (comment.replies && comment.replies.length > 0) {
+        allComments.push(...comment.replies);
+      }
+    });
+
+    const commentIds = allComments.map((comment) => comment.id);
+
+    const likes = await likesService.getAll("Comment", commentIds);
+
+    const currentUserLikes = new Set();
+    likes.forEach((like) => {
+      if (like.user_id === currentUser.id) {
+        currentUserLikes.add(like.likeable_id);
+      }
+    });
+
+    const withLikeFlag = comments.map((comment) => {
+      const commentJSON = comment.toJSON();
+      commentJSON.is_like = currentUserLikes.has(comment.id);
+
+      if (commentJSON.replies && commentJSON.replies.length > 0) {
+        commentJSON.replies = commentJSON.replies.map((reply) => ({
+          ...reply,
+          is_like: currentUserLikes.has(reply.id),
+        }));
+      }
+
+      return commentJSON;
+    });
+
+    return withLikeFlag;
+  };
 
   // async getById(id) {
   //   const topic = await Comment.findOne({ where: { id } });
@@ -241,7 +279,7 @@ class CommentService {
             "post_id",
             "parent_id",
             "content",
-            // "like_count",
+            "like_count",
             "deleted_at",
             "created_at",
             "updated_at",
@@ -292,12 +330,22 @@ class CommentService {
 
   async update(id, data) {
     try {
-      await Comment.update(data, {
-        where: { id },
+      if (data.deleted_at === true || data.deleted_at === "delete") {
+        data.deleted_at = new Date();
+      }
+
+      // Nếu chỉnh sửa nội dung → cập nhật edited_at
+      if (data.content) {
+        data.edited_at = new Date();
+      }
+
+      await Comment.update(data, { where: { id } });
+
+      return await Comment.findByPk(id, {
+        attributes: ["id", "content", "deleted_at", "edited_at"],
       });
-      return await Comment.findByPk(id);
     } catch (error) {
-      console.log("Lỗi khi update", error);
+      console.log("Lỗi khi update:", error);
       return null;
     }
   }
@@ -306,6 +354,8 @@ class CommentService {
     await Comment.destroy({
       where: { id },
     });
+    console.log(id);
+
     return null;
   }
 }

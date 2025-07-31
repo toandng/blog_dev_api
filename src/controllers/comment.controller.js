@@ -96,7 +96,7 @@ const update = async (req, res) => {
   }
 };
 const remove = async (req, res) => {
-  await topicService.remove(req.params.id);
+  await commentService.update(req.params.id, { deleted_at: new Date() });
   res.status(204).send();
 };
 
