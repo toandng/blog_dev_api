@@ -13,8 +13,10 @@ router.get("/topic/:topicId", postController.getByTopicId);
 
 router.get("/:postId/related", postController.getRelatedPosts);
 router.get("/user/:username", checkAuth, postController.getByUserName);
+router.post("/views/:id", postController.viewsCount);
 
 router.post("/", upload.single("thumbnail"), checkAuth, postController.create);
+router.post("/:postId/like", checkAuth, postController.toggleLike);
 router.put("/:id", postController.update);
 router.delete("/:id", postController.remove);
 

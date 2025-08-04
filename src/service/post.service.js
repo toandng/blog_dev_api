@@ -1,9 +1,10 @@
 const { where } = require("sequelize");
-const { Post, Topic, User, Sequelize, Op } = require("@/db/models");
+const { Post, Topic, User, Like, Sequelize, Op } = require("@/db/models");
 const likesService = require("@/service/like.service");
 const topicsService = require("@/service/topic.service");
 const usersService = require("@/service/user.service");
 const slugify = require("slugify");
+const { post } = require("@/routes/api");
 class PostsService {
   async getAll() {
     const posts = await Post.findAll({
@@ -19,7 +20,6 @@ class PostsService {
       }
       return postData;
     });
-    const likes = await likesService.getAll();
     const postIds = posts.map((post) => post.id);
     return { posts: result, postIds };
   }
@@ -142,7 +142,10 @@ class PostsService {
 
     const postIds = posts.map((post) => post.id);
 
-    const likes = await likesService.getAll("Post", postIds);
+    const likes = await likesService.getAll(
+      "Post",
+      postIds.map((post) => post.id)
+    );
 
     const currentUserLikes = new Set();
     const currentUserBookmark = new Set();
@@ -331,6 +334,43 @@ class PostsService {
     );
 
     return this.handleLikeAndBookmarkFlags(postVisible, currentUser);
+  }
+
+  async viewsCount(id) {
+    try {
+      const post = await Post.findByPk(id);
+      post.views_count = post.views_count + 1;
+      await post.save();
+    } catch (error) {
+      console.log("Lỗi không thấy cập nhập views", error);
+    }
+  }
+  async toggleLike(currentUser, postId) {
+    if (!currentUser)
+      throw new Error("You must be logged in to like this post.");
+
+    const [like, created] = await Like.findOrCreate({
+      where: {
+        likeable_id: postId,
+        user_id: currentUser.id,
+        likeable_type: "Post",
+      },
+    });
+
+    const post = await Post.findByPk(postId);
+
+    if (!post) throw new Error("Post not found");
+
+    if (!created) {
+      await like.destroy();
+      post.likes_count = Math.max(0, (post.likes_count ?? 0) - 1);
+      await post.save();
+      return false;
+    }
+
+    post.likes_count = (post.likes_count ?? 0) + 1;
+    await post.save();
+    return true;
   }
 
   async create(thumbnailPath, data, currentUser) {

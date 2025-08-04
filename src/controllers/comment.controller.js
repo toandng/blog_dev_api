@@ -30,12 +30,12 @@ const getAllCommentsInPost = async (req, res) => {
 };
 
 const toggleLike = async (req, res) => {
+  // console.log(req.params.commentId);
   try {
-    const result = await commentService.toggleLike(
-      req.user,
-      req.params.commentId
-    );
-    console.log(result);
+    const { commentId } = req.params;
+    console.log(commentId, "vào đây chưa");
+
+    const result = await commentService.toggleLike(req.user, commentId);
 
     response.succsess(res, 200, result);
   } catch (error) {

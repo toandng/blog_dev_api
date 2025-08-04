@@ -43,7 +43,7 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
-      like_count: {
+      likes_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },

@@ -203,7 +203,6 @@ class UserService {
 
   async checkFollowing(currentUser, userId) {
     if (!currentUser) throw new Error("Bạn phải đăng nhập để follow");
-    console.log("123", userId);
 
     const userFollows = await User.findAll({
       where: { id: userId },

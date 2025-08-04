@@ -119,9 +119,12 @@ class CommentService {
       }
     });
 
-    const commentIds = allComments.map((comment) => comment.id);
+    const commentIds = allComments.map((comment) => comment?.id);
 
-    const likes = await likesService.getAll("Comment", commentIds);
+    const likes = await likesService.getAll(
+      "Comment",
+      commentIds.map((c) => c.id)
+    );
 
     const currentUserLikes = new Set();
     likes.forEach((like) => {
@@ -132,7 +135,7 @@ class CommentService {
 
     const withLikeFlag = comments.map((comment) => {
       const commentJSON = comment.toJSON();
-      commentJSON.is_like = currentUserLikes.has(comment.id);
+      commentJSON.is_like = currentUserLikes.has(comment?.id);
 
       if (commentJSON.replies && commentJSON.replies.length > 0) {
         commentJSON.replies = commentJSON.replies.map((reply) => ({
@@ -184,23 +187,32 @@ class CommentService {
   //   });
   //   return topic;
   // }
+
   async toggleLike(currentUser, commentId) {
-    if (!currentUser) throw new Error("Bạn phải đăng nhập để like bài post");
+    console.log(commentId);
+
+    if (!currentUser)
+      throw new Error("You must be logged in to like this post.");
+
     const [like, created] = await Like.findOrCreate({
       where: {
         likeable_id: commentId,
         user_id: currentUser.id,
-        // likeable_type: "Comment",
+        likeable_type: "Comment",
       },
     });
+
     const comment = await Comment.findByPk(commentId);
+
     if (!comment) throw new Error("Comment not found");
+
     if (!created) {
       await like.destroy();
       comment.like_count = Math.max(0, (comment.like_count ?? 0) - 1);
       await comment.save();
       return false;
     }
+
     comment.like_count = (comment.like_count ?? 0) + 1;
     await comment.save();
     return true;

@@ -68,6 +68,22 @@ const getByUserName = async (req, res) => {
     response.error(res, 400, error.message);
   }
 };
+const viewsCount = async (req, res) => {
+  try {
+    const post = await postService.viewsCount(req.params.id);
+    response.succsess(res, 200, post);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};
+const toggleLike = async (req, res) => {
+  try {
+    const post = await postService.toggleLike(req.user, req.params.postId);
+    response.succsess(res, 200, post);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};
 const update = async (req, res) => {
   const post = await postService.update(req.params.id, req.body);
 
@@ -93,6 +109,8 @@ module.exports = {
   getRelatedPosts,
   getByTopicId,
   getByUserName,
+  viewsCount,
+  toggleLike,
   update,
   create,
   remove,
