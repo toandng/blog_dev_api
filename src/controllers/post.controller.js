@@ -37,6 +37,17 @@ const getListByMe = async (req, res) => {
     response.error(res, 400, error.message);
   }
 };
+
+const getListByUserId = async (req, res) => {
+  try {
+    const posts = await postService.getBookmarkedPostsByUser(req.user);
+    console.log(posts, "1hih");
+
+    response.succsess(res, 200, posts);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};
 const getByTopicId = async (req, res) => {
   try {
     const posts = await postService.getByTopicId(req.user, req.params.topicId);
@@ -108,6 +119,7 @@ module.exports = {
   getListByMe,
   getRelatedPosts,
   getByTopicId,
+  getListByUserId,
   getByUserName,
   viewsCount,
   toggleLike,

@@ -1,5 +1,5 @@
 const { where } = require("sequelize");
-const { Like, Post } = require("@/db/models");
+const { Like, Post, Bookmark } = require("@/db/models");
 
 class BookmarksService {
   async toggleBookmark(currentUser, postId) {

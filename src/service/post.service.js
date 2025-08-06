@@ -182,6 +182,45 @@ class PostsService {
     }
     return post;
   }
+
+  async getBookmarkedPostsByUser(currentUser) {
+    if (!currentUser) throw new Error("You must be logged in to access this.");
+
+    const user = await User.findByPk(currentUser.id, {
+      include: [
+        {
+          model: Post,
+          as: "bookmarkedPosts",
+          through: {
+            attributes: ["id", "createdAt", "post_id", "user_id"],
+          },
+          include: [
+            {
+              model: Topic,
+              as: "topics",
+            },
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "first_name", "last_name", "avatar"],
+            },
+            {
+              model: User,
+              as: "usersBookmarked",
+              attributes: ["id"],
+            },
+          ],
+        },
+      ],
+    });
+
+    console.log(user?.bookmarkedPosts);
+
+    const posts = user?.bookmarkedPosts || [];
+
+    return this.handleLikeAndBookmarkFlags(posts, currentUser);
+  }
+
   async getByTopicId(currentUser, topicId) {
     try {
       const posts = await Post.findAll({

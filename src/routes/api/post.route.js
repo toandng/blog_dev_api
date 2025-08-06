@@ -9,7 +9,8 @@ router.get("/", checkAuth, postController.index);
 router.get("/me", checkAuth, postController.getListByMe);
 
 router.get("/slug/:slug", postController.getBySlug);
-router.get("/topic/:topicId", postController.getByTopicId);
+router.get("/topic/:topicId", checkAuth, postController.getByTopicId);
+router.get("/user/bookmarks", checkAuth, postController.getListByUserId);
 
 router.get("/:postId/related", postController.getRelatedPosts);
 router.get("/user/:username", checkAuth, postController.getByUserName);
