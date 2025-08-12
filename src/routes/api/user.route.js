@@ -18,5 +18,6 @@ router.put(
   checkAuth,
   userController.editProfile
 );
+router.post("/settings", checkAuth, userController.settings);
 
 module.exports = router;

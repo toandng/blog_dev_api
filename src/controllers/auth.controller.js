@@ -87,10 +87,10 @@ const forGotPassWord = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    await authService.resetPassword(req.body);
+    await authService.resetPassword(req.body, req.user);
     res.status(201).send("");
   } catch (error) {
-    throw new Error(error);
+    response.error(res, 400, error.message);
   }
 };
 

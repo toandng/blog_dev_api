@@ -52,7 +52,7 @@ module.exports = {
         defaultValue: null,
       },
       edited_at: {
-        type: DataTypes.DATE,
+        type: Sequelize.DATE,
         defaultValue: null,
       },
       created_at: {

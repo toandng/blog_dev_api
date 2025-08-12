@@ -243,17 +243,35 @@ class UserService {
       throw new Error(error);
     }
   }
+  async setting(data, currentUser) {
+    if (!currentUser) throw new Error("You must be logged to edit settings");
+    const { email, ...settings } = data;
+    if (email !== currentUser.email) {
+      if (email && !validator.isEmail(email)) {
+        throw new Error("Invalid email address");
+      }
+      await currentUser.update({ verified_at: null, email });
+
+      await Queue.create({
+        type: "sendVerifyEmailJob",
+        payload: { userId: currentUser.id },
+      });
+    }
+    const user = await UserSetting.findOne({
+      where: {
+        user_id: currentUser.id,
+      },
+    });
+    if (user) {
+      user.data = JSON.stringify(settings);
+      await user.save();
+    } else {
+      await UserSetting.create({
+        user_id: currentUser.id,
+        data: JSON.stringify(settings),
+      });
+    }
+  }
 }
 
-// module.exports = {
-//   getAllUser,
-//   getUserById,
-//   canUserViewProfile,
-//   getUserProfileVisibility,
-//   getUserFollowingIds,
-//   getUserByUsername,
-//   editProfile,
-//   toggleFollow,
-//   checkFollowing,
-// };
 module.exports = new UserService();

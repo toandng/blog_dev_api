@@ -43,11 +43,11 @@ exports.editProfile = async (req, res) => {
   }
 };
 
-// exports.settings = async (req, res) => {
-//   try {
-//     await userService.settings(req.body, req.user);
-//     response.succsess(res, 201, true);
-//   } catch (error) {
-//     response.error(res, 400, error.message);
-//   }
-// };
+exports.settings = async (req, res) => {
+  try {
+    await userService.setting(req.body, req.user);
+    response.succsess(res, 201, true);
+  } catch (error) {
+    response.error(res, 400, error.message);
+  }
+};

@@ -82,68 +82,64 @@ const forGotPassWord = async (email) => {
   });
 };
 
-const resetPassword = async (data) => {
-  const { token, password, confirmPassword, ...remaining } = data;
+const resetPassword = async (data, currentUser) => {
+  if (currentUser && currentUser.id) {
+    let user = currentUser;
 
-  console.log("Reset password data:", data);
+    // Luôn tìm lại người dùng để đảm bảo có mật khẩu từ DB
+    const userWithPassword = await User.findOne({
+      where: { id: currentUser.id },
+      attributes: ["id", "password"],
+    });
 
-  if (!token) {
-    throw new Error("Token không được để trống");
-  }
-
-  if (!password) {
-    throw new Error("Mật khẩu không được để trống");
-  }
-
-  if (password !== confirmPassword) {
-    throw new Error("Mật khẩu xác nhận không khớp");
-  }
-
-  try {
-    // Extract userId từ token
-    const { userId } = jwtService.verifyAccessToken(
-      token,
-      process.env.MAIL_JWT_SECRET
-    );
-
-    console.log("Extracted userId:", userId);
-
-    if (!userId) {
-      throw new Error("Token không hợp lệ hoặc đã hết hạn");
+    // Kiểm tra xem người dùng có tồn tại và có mật khẩu hay không
+    if (!userWithPassword || !userWithPassword.password) {
+      throw new Error("Không thể tìm thấy mật khẩu người dùng để so sánh.");
     }
 
-    const user = await User.findOne({ where: { id: userId } });
+    // Gán lại user để dùng cho các bước tiếp theo
+    user = userWithPassword;
 
-    if (!user) {
-      throw new Error("Người dùng không tồn tại");
+    // ... các đoạn code tiếp theo không thay đổi
+    if (!data.currentPassword) {
+      throw new Error("Vui lòng nhập mật khẩu hiện tại.");
+    }
+    console.log(data.currentPassword);
+
+    const isValid = await compare(data.currentPassword, user.password);
+    if (!isValid) {
+      throw new Error("Mật khẩu hiện tại bạn đã nhập không đúng.");
     }
 
-    const isValid = await compare(password, user.password);
-    if (isValid) {
-      throw new Error("Mật khẩu mới phải khác mật khẩu cũ");
+    const isSameAsOld = await compare(data.newPassword, user.password);
+    if (isSameAsOld) {
+      throw new Error("Vui lòng chọn mật khẩu khác với mật khẩu hiện tại.");
     }
 
     await User.update(
-      {
-        password: await hash(password),
-        verified_at: new Date(),
-      },
-      {
-        where: {
-          id: userId,
-        },
-      }
+      { password: await hash(data.newPassword) },
+      { where: { id: user.id } }
     );
 
-    console.log(`Password updated successfully for user ${userId}`);
-  } catch (error) {
-    console.error("Reset password error:", error);
-    if (error.message.includes("jwt")) {
-      throw new Error("Token không hợp lệ hoặc đã hết hạn");
-    }
-
-    throw new Error(error.message || "Có lỗi xảy ra khi đặt lại mật khẩu");
+    return;
   }
+
+  // Trường hợp reset qua email (forgot password)
+  const { userId, password } = data;
+
+  if (!userId || !password) {
+    throw new Error("userID or password is missing");
+  }
+
+  const user = await User.findOne({ where: { id: userId } });
+  if (!user) {
+    throw new Error("Invalid user");
+  }
+
+  await User.update(
+    { password: await hash(password) },
+    { where: { id: userId } }
+  );
 };
 
 const verifyEmail = async (token) => {
