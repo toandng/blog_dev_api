@@ -5,7 +5,7 @@ const postController = require("@/controllers/post.controller");
 const checkAuth = require("@/middlewares/checkAuth");
 const upload = require("@/middlewares/upload");
 
-router.get("/", checkAuth, postController.index);
+router.get("/", postController.index);
 router.get("/me", checkAuth, postController.getListByMe);
 
 router.get("/slug/:slug", postController.getBySlug);
