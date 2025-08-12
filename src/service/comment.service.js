@@ -341,21 +341,29 @@ class CommentService {
   }
 
   async update(id, data) {
+    console.log(id);
+
     try {
-      if (data.deleted_at === true || data.deleted_at === "delete") {
-        data.deleted_at = new Date();
-      }
-
-      // Nếu chỉnh sửa nội dung → cập nhật edited_at
-      if (data.content) {
-        data.edited_at = new Date();
-      }
-
-      await Comment.update(data, { where: { id } });
-
-      return await Comment.findByPk(id, {
+      const comment = await Comment.findByPk(id, {
         attributes: ["id", "content", "deleted_at", "edited_at"],
       });
+
+      if (!comment) {
+        console.log("Không tìm thấy comment");
+        return null;
+      }
+
+      if (comment.deleted_at) {
+        console.log("Comment đã bị xóa");
+        return null;
+      }
+
+      // Update nội dung comment
+      // comment.content = data.content;
+      comment.deleted_at = Date.now();
+      await comment.save();
+
+      return comment;
     } catch (error) {
       console.log("Lỗi khi update:", error);
       return null;

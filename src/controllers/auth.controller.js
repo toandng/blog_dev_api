@@ -11,7 +11,6 @@ const register = async (req, res) => {
     });
 
     response.succsess(res, 200, token);
-    console.log(token);
   } catch (error) {
     response.error(res, 400, error.message);
   }
@@ -22,7 +21,6 @@ const login = async (req, res) => {
 
   try {
     const userData = await authService.login({ email, password });
-    console.log(userData);
 
     return response.succsess(res, 200, userData);
   } catch (error) {
@@ -31,8 +29,6 @@ const login = async (req, res) => {
 };
 
 const me = async (req, res) => {
-  console.log(123);
-
   try {
     if (!req.user) {
       return response.error(res, 401, "Token invalid");

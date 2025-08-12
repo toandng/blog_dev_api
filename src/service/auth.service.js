@@ -24,7 +24,6 @@ const register = async (data) => {
 
 const login = async ({ email, password }) => {
   const user = await User.findOne({ where: { email }, raw: true });
-  console.log(user);
 
   if (!user) {
     throw new Error("Thông tin đăng nhập không hợp lệ");
@@ -104,7 +103,6 @@ const resetPassword = async (data, currentUser) => {
     if (!data.currentPassword) {
       throw new Error("Vui lòng nhập mật khẩu hiện tại.");
     }
-    console.log(data.currentPassword);
 
     const isValid = await compare(data.currentPassword, user.password);
     if (!isValid) {

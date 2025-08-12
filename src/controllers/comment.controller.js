@@ -24,16 +24,12 @@ const getAllCommentsInPost = async (req, res) => {
     req.user
   );
 
-  console.log(comments);
-
   res.json(comments);
 };
 
 const toggleLike = async (req, res) => {
-  // console.log(req.params.commentId);
   try {
     const { commentId } = req.params;
-    console.log(commentId, "vào đây chưa");
 
     const result = await commentService.toggleLike(req.user, commentId);
 
@@ -45,9 +41,6 @@ const toggleLike = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    console.log("Current user:", req.user);
-
     const { content, post_id, parent_id } = req.body;
 
     if (!post_id || !content) {
@@ -96,7 +89,7 @@ const update = async (req, res) => {
   }
 };
 const remove = async (req, res) => {
-  await commentService.update(req.params.id, { deleted_at: new Date() });
+  await commentService.update(req.params.id);
   res.status(204).send();
 };
 

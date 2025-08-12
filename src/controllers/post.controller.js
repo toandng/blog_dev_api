@@ -41,7 +41,6 @@ const getListByMe = async (req, res) => {
 const getListByUserId = async (req, res) => {
   try {
     const posts = await postService.getBookmarkedPostsByUser(req.user);
-    console.log(posts, "1hih");
 
     response.succsess(res, 200, posts);
   } catch (error) {

@@ -34,8 +34,6 @@ async function sendVerifyEmailJob(job) {
       throw new Error("Failed to load email template");
     }
 
-    console.log("Email template loaded successfully");
-
     // Gửi email
     const result = await transporter.sendMail({
       from: process.env.MAIL_FROM || "meocute0508@gmail.com",
@@ -44,7 +42,6 @@ async function sendVerifyEmailJob(job) {
       html: template,
     });
 
-    console.log(`Email sent successfully to ${user.email}:`, result.messageId);
     return result;
   } catch (error) {
     console.error("Error in sendVerifyEmailJob:", error.message);
