@@ -10,7 +10,7 @@ const app = express();
 const errorHandler = require("@/middlewares/errors/errorHandler");
 const notFoudHandler = require("@/middlewares/errors/notFoundHandler");
 // cors
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors());
 
 // cau hình router đến public
 app.use(express.json());

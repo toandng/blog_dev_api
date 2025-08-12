@@ -31,6 +31,8 @@ const login = async (req, res) => {
 };
 
 const me = async (req, res) => {
+  console.log(123);
+
   try {
     if (!req.user) {
       return response.error(res, 401, "Token invalid");
