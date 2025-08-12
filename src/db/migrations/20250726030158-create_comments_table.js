@@ -44,7 +44,7 @@ module.exports = {
         allowNull: false,
       },
       likes_count: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.INTEGER,
         defaultValue: 0,
       },
       deleted_at: {
