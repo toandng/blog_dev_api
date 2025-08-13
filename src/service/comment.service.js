@@ -340,47 +340,46 @@ class CommentService {
     return comment;
   }
 
-  // async update(id, data) {
-  //   try {
-  //     const comment = await Comment.findByPk(id, {
-  //       attributes: ["id", "content", "deleted_at", "edited_at"],
-  //     });
-
-  //     if (!comment) {
-  //       console.log("Không tìm thấy comment");
-  //       return null;
-  //     }
-
-  //     if (comment.deleted_at) {
-  //       console.log("Comment đã bị xóa");
-  //       return null;
-  //     }
-
-  //     // Update nội dung comment
-  //     comment.content = data.content;
-  //     comment.deleted_at = Date.now();
-  //     await comment.save();
-
-  //     return comment;
-  //   } catch (error) {
-  //     console.log("Lỗi khi update:", error);
-  //     return null;
-  //   }
-  // }
-  async update(id, data, currentUser) {
-    if (!currentUser)
-      throw new Error("You must be logged in to edit comment this post.");
-
+  async update(id, data) {
     try {
-      await Comment.update(data, {
-        where: { id },
+      const comment = await Comment.findByPk(id, {
+        attributes: ["id", "content", "deleted_at", "edited_at"],
       });
 
-      return await Comment.findByPk(id);
+      if (!comment) {
+        console.log("Không tìm thấy comment");
+        return null;
+      }
+
+      if (comment.deleted_at) {
+        console.log("Comment đã bị xóa");
+        return null;
+      }
+
+      // comment.content = data.content;
+      comment.deleted_at = Date.now();
+      await comment.save();
+
+      return comment;
     } catch (error) {
-      return console.log("Lỗi khi update: ", error);
+      console.log("Lỗi khi update:", error);
+      return null;
     }
   }
+  // async update(id, data, currentUser) {
+  //   if (!currentUser)
+  //     throw new Error("You must be logged in to edit comment this post.");
+
+  //   try {
+  //     await Comment.update(data, {
+  //       where: { id },
+  //     });
+
+  //     return await Comment.findByPk(id);
+  //   } catch (error) {
+  //     return console.log("Lỗi khi update: ", error);
+  //   }
+  // }
 
   async remove(id) {
     await Comment.destroy({
