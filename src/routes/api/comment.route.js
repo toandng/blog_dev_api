@@ -21,7 +21,7 @@ router.post("/:commentId/like", checkAuth, commentController.toggleLike);
 //   commentController.toggleLike
 // );
 
-router.delete("/:id", commentController.remove);
 router.put("/:id", checkAuth, commentController.update);
+router.delete("/:id", commentController.remove);
 
 module.exports = router;

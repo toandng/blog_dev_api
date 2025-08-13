@@ -340,33 +340,45 @@ class CommentService {
     return comment;
   }
 
-  async update(id, data) {
-    console.log(id);
+  // async update(id, data) {
+  //   try {
+  //     const comment = await Comment.findByPk(id, {
+  //       attributes: ["id", "content", "deleted_at", "edited_at"],
+  //     });
+
+  //     if (!comment) {
+  //       console.log("Không tìm thấy comment");
+  //       return null;
+  //     }
+
+  //     if (comment.deleted_at) {
+  //       console.log("Comment đã bị xóa");
+  //       return null;
+  //     }
+
+  //     // Update nội dung comment
+  //     comment.content = data.content;
+  //     comment.deleted_at = Date.now();
+  //     await comment.save();
+
+  //     return comment;
+  //   } catch (error) {
+  //     console.log("Lỗi khi update:", error);
+  //     return null;
+  //   }
+  // }
+  async update(id, data, currentUser) {
+    if (!currentUser)
+      throw new Error("You must be logged in to edit comment this post.");
 
     try {
-      const comment = await Comment.findByPk(id, {
-        attributes: ["id", "content", "deleted_at", "edited_at"],
+      await Comment.update(data, {
+        where: { id },
       });
 
-      if (!comment) {
-        console.log("Không tìm thấy comment");
-        return null;
-      }
-
-      if (comment.deleted_at) {
-        console.log("Comment đã bị xóa");
-        return null;
-      }
-
-      // Update nội dung comment
-      // comment.content = data.content;
-      comment.deleted_at = Date.now();
-      await comment.save();
-
-      return comment;
+      return await Comment.findByPk(id);
     } catch (error) {
-      console.log("Lỗi khi update:", error);
-      return null;
+      return console.log("Lỗi khi update: ", error);
     }
   }
 
